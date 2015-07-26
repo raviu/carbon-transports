@@ -15,3 +15,13 @@ hs_err_pid*
 *.iml
 *.ipr
 *.iws
+.idea
+
+# eclipse 
+.classpath
+.settings
+.project
+
+# misc
+target
+

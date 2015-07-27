@@ -1,20 +1,20 @@
-package org.wso2.carbon.http.netty.sender;
+package org.wso2.carbon.http.netty.listener;
 
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class SenderWorkerPool {
+public class SourceWorkerPool {
 
-    private static SenderWorkerPool instance = new SenderWorkerPool();
+    private static SourceWorkerPool instance = new SourceWorkerPool();
     private static ExecutorService executorService ;
 
 
-    private SenderWorkerPool() {
+    private SourceWorkerPool() {
         executorService = Executors.newFixedThreadPool(100);
     }
 
-    public static SenderWorkerPool getInstance() {
+    public static SourceWorkerPool getInstance() {
         return instance;
     }
 

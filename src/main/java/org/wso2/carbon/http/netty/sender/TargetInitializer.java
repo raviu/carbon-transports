@@ -18,6 +18,7 @@
 package org.wso2.carbon.http.netty.sender;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -29,8 +30,8 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
 
     private TargetHandler outboundHandler;
 
-    public TargetInitializer(Channel ch) {
-        outboundHandler = new TargetHandler(ch);
+    public TargetInitializer(ChannelHandlerContext inboundCtx) {
+        outboundHandler = new TargetHandler(inboundCtx);
     }
 
 

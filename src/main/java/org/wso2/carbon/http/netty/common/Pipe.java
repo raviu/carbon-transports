@@ -52,7 +52,6 @@ public class Pipe {
 
     }
 
-
     public void writeContent(DefaultHttpContent defaultHttpContent) {
         lock.lock();
         try {

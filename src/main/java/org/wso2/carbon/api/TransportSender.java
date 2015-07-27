@@ -17,12 +17,16 @@
  */
 package org.wso2.carbon.api;
 
-import org.wso2.carbon.context.CommonContext;
+public abstract class TransportSender {
 
-public interface TransportSenderAPI {
+    private String protocol;
 
-    boolean init();
+    public TransportSender(String protocol) {
+        this.protocol = protocol;
+    }
 
-    boolean send(CommonContext ctx);
+    public abstract boolean init();
+
+    public abstract boolean send(CarbonMessage msg);
 
 }

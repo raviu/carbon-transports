@@ -18,8 +18,14 @@
 package org.wso2.carbon.http.netty.common;
 
 public class Constants {
-    public static String INCOMING_REQUEST = "INCOMING_REQUEST";
-    public static String OUTGOING_REQUEST = "OUTGOING_REQUEST";
+
+    public static String PROTOCOL_NAME = "http";
+
+    public static String PIPE = "PIPE";
+
+    public static String REQUEST = "REQUEST";
+    public static String RESPONSE = "RESPONSE";
+
     public static String BOOTSTRAP = "BOOTSTRAP";
 
     public static String TO_SCHEME = "TO_SCHEME";

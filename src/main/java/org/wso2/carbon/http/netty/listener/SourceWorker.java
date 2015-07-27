@@ -19,7 +19,9 @@ package org.wso2.carbon.http.netty.listener;
 
 import io.netty.bootstrap.Bootstrap;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.controller.Engine;
+import org.wso2.carbon.api.CarbonMessage;
+import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Request;
 import org.wso2.carbon.http.netty.sender.TargetHandler;
@@ -48,10 +50,11 @@ public class SourceWorker implements Runnable {
     }
 
     public void run() {
-        DefaultCommonContext ctx = new DefaultCommonContext();
-        ctx.setProperty(Constants.INCOMING_REQUEST, sourceRequest);
-        ctx.setProperty(Constants.BOOTSTRAP, bootstrap);
-        engine.receive(ctx);
+        CarbonMessage msg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
+        msg.setProperty(Constants.PROTOCOL_NAME, Constants.REQUEST, sourceRequest);
+        msg.setProperty(Constants.PROTOCOL_NAME, Constants.BOOTSTRAP, bootstrap);
+        msg.setProperty(Constants.PROTOCOL_NAME, Constants.PIPE, sourceRequest.getPipe());
+        engine.receive(msg);
     }
 
 

@@ -21,35 +21,37 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
-import org.wso2.carbon.api.TransportSenderAPI;
-import org.wso2.carbon.context.CommonContext;
+import io.netty.handler.codec.http.HttpVersion;
+import org.wso2.carbon.api.CarbonMessage;
+import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.http.netty.common.Constants;
+import org.wso2.carbon.http.netty.common.Request;
 
 import java.net.InetSocketAddress;
+import java.util.Iterator;
+import java.util.Map;
 
 
-public class Sender implements TransportSenderAPI {
+public class Sender extends TransportSender {
 
 
     public Sender() {
-
+        super(Constants.PROTOCOL_NAME);
     }
 
     public boolean init() {
         return true;
     }
 
-    public boolean send(CommonContext ctx) {
-        Bootstrap bootstrap = (Bootstrap) ctx.getProperty(Constants.BOOTSTRAP);
+    public boolean send(CarbonMessage msg) {
+        Bootstrap bootstrap = (Bootstrap) msg.getProperty(Constants.PROTOCOL_NAME, Constants.BOOTSTRAP);
 
-        String host = (String) ctx.getProperty(Constants.TO_HOST);
-        int port = (Integer) ctx.getProperty(Constants.TO_PORT);
+        InetSocketAddress address = new InetSocketAddress(msg.getHost(), msg.getPort());
 
-        InetSocketAddress address = new InetSocketAddress(host, port);
-
-        final HttpRequest request = (HttpRequest) ctx.getProperty(Constants.OUTGOING_REQUEST);
+        final HttpRequest request = createHttpRequest(msg, msg.getURI());
 
         ChannelFuture f = bootstrap.connect(address);
         final Channel ch = f.channel();
@@ -66,5 +68,36 @@ public class Sender implements TransportSenderAPI {
         });
 
         return false;
+    }
+
+
+    private HttpRequest createHttpRequest(CarbonMessage msg, String uri) {
+
+        Request incomingRequest = (Request) msg.getProperty(Constants.PROTOCOL_NAME,
+                Constants.REQUEST);
+
+        HttpMethod httpMethod = new HttpMethod(incomingRequest.getHttpMethod().name());
+        HttpVersion httpVersion = new HttpVersion(incomingRequest.getHttpVersion().text(), true);
+        Map headers = (Map) incomingRequest.getHttpHeaders();
+
+        HttpRequest outgoinRequest = new DefaultHttpRequest(httpVersion, httpMethod, uri);
+
+        if (headers != null) {
+            Iterator iterator = headers.keySet().iterator();
+            while (iterator.hasNext()) {
+                String key = (String) iterator.next();
+                outgoinRequest.headers().add(key, headers.get(key));
+            }
+        }
+
+        Map<String, Object> map = msg.getProperties().get(Constants.PROTOCOL_NAME);
+        if (map != null) {
+            for (String k: map.keySet()) {
+                if (map.get(k) instanceof String)
+                outgoinRequest.headers().add(k, (String) map.get(k));
+            }
+        }
+
+        return outgoinRequest;
     }
 }

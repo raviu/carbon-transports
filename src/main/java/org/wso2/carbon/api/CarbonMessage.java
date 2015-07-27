@@ -15,20 +15,33 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.controller;
+package org.wso2.carbon.api;
 
-import org.wso2.carbon.http.netty.listener.Listener;
-import org.wso2.carbon.http.netty.sender.Sender;
+import java.util.Map;
 
-public class POCController {
+public interface CarbonMessage {
 
-    public static void main(String[] args) {
+    String getHost();
+    void setHost(String host);
 
-        Sender sender = new Sender();
+    int getPort();
+    void setPort(int port);
 
-        Listener listener = new Listener(9090, new EngineImpl(sender));
-        listener.start();
+    String getURI();
+    void setURI(String to);
 
-    }
+    String replyTo();
+    void setReplyTo(String replyTo);
 
+    int getDirection();
+    void setDirection(int direction);
+
+    String getProtocol();
+    void setProtocol(String protocol);
+
+    Object getProperty(String protocol, String key);
+    void setProperty(String protocol, String key, Object value);
+
+    Map<String, Map<String, Object>> getProperties();
+    void setProperties(Map<String, Map<String, Object>> properties);
 }

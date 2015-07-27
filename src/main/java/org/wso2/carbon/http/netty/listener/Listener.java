@@ -24,7 +24,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.controller.Engine;
+import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.controller.EngineImpl;
 
 public class Listener extends org.wso2.carbon.CarbonTransport {
     private static Logger log = Logger.getLogger(Listener.class);
@@ -40,7 +41,7 @@ public class Listener extends org.wso2.carbon.CarbonTransport {
     private EventLoopGroup workerGroup =
             new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
 
-    public Listener(int port, Engine engine) {
+    public Listener(int port, EngineImpl engine) {
         super(ID);
         this.port = port;
         this.engine = engine;

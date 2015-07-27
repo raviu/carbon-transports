@@ -28,7 +28,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.controller.Engine;
+import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.http.netty.common.Pipe;
 import org.wso2.carbon.http.netty.common.Request;
 import org.wso2.carbon.http.netty.sender.TargetHandler;
@@ -57,12 +57,12 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         final Channel inboundChannel = ctx.channel();
 
-        outboundHandler = new TargetHandler(inboundChannel);
+        outboundHandler = new TargetHandler(ctx);
 
         bootstrap = new Bootstrap();
         bootstrap.group(inboundChannel.eventLoop())
                 .channel(ctx.channel().getClass())
-                .handler(new TargetInitializer(inboundChannel));
+                .handler(new TargetInitializer(ctx));
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);;
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
@@ -87,7 +87,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             sourceRequest.setBootstrap(bootstrap);
             sourceRequest.setPipe(new Pipe("sourcePipe"));
             requestList.add(sourceRequest);
-            ListenerWorkerPool.getInstance().submitJob(new SourceWorker(outboundHandler,
+            SourceWorkerPool.submitJob(new SourceWorker(outboundHandler,
                     sourceRequest, this, engine, bootstrap));
         } else if (msg instanceof HttpContent) {
             if (requestList.get(0) != null) {

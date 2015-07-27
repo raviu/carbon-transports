@@ -35,14 +35,12 @@ import java.util.List;
 public class TargetHandler extends ChannelInboundHandlerAdapter {
 
     private static Logger log = Logger.getLogger(TargetHandler.class);
-    private Channel inboundChannel;
+    private ChannelHandlerContext inboundChannelHandlerContext;
 
     private List<Response> responseList = new ArrayList<Response>();
 
-    int count = 0;
-
-    public TargetHandler(Channel inboundChannel) {
-        this.inboundChannel = inboundChannel;
+    public TargetHandler(ChannelHandlerContext inboundChannelHandlerContext) {
+        this.inboundChannelHandlerContext = inboundChannelHandlerContext;
     }
 
     @Override
@@ -63,7 +61,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             response.setStatusLine(defaultHttpResponse.getStatus().toString());
             response.setPipe(new Pipe("TargetPipe"));
             responseList.add(response);
-//            sourceConfiguration.getWorkerPool().execute(new ResponseWorker(messageContext, response, sourceConfiguration));
+            TargetWorkerPool.submitJob(new TargetWorker(inboundChannelHandlerContext, response));
         } else if (msg instanceof HttpContent) {
             if (responseList.get(0) != null) {
                 if (msg instanceof LastHttpContent) {
@@ -78,7 +76,6 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
             }
         }
-        //    sourceConfiguration.getWorkerPool().execute(new ResponseWorker(messageContext,response,sourceConfiguration));
     }
 
 

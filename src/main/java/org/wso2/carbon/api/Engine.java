@@ -17,12 +17,10 @@
  */
 package org.wso2.carbon.api;
 
-import org.wso2.carbon.context.CommonContext;
-
-public interface EngineAPI {
+public interface Engine {
 
     boolean init();
 
-    boolean receive(CommonContext ctx);
+    boolean receive(CarbonMessage msg);
 
 }

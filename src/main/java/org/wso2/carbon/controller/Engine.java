@@ -17,14 +17,28 @@
  */
 package org.wso2.carbon.controller;
 
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpVersion;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.EngineAPI;
 import org.wso2.carbon.context.CommonContext;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Request;
+import org.wso2.carbon.http.netty.sender.Sender;
+
+import java.util.Iterator;
+import java.util.Map;
 
 public class Engine implements EngineAPI {
     private static Logger log = Logger.getLogger(Engine.class);
+
+    private Sender sender;
+
+    public Engine(Sender sender) {
+        this.sender = sender;
+    }
 
     public boolean init() {
         return true;
@@ -32,9 +46,44 @@ public class Engine implements EngineAPI {
 
     public boolean receive(CommonContext ctx) {
         log.info("Engine receive");
-        Request request = (Request) ctx.getProperty(Constants.MSG_OBJ);
-        log.info(request.getHttpMethod() + " "  + request.getUri() + " " + request.getHttpVersion());
+        Request request = (Request) ctx.getProperty(Constants.INCOMING_REQUEST);
+        log.info(request.getHttpMethod() + " " + request.getUri() + " " + request.getHttpVersion());
+
+        log.info("Forward Message");
+        ctx.setProperty(Constants.TO_SCHEME, "http");
+        ctx.setProperty(Constants.TO_HOST, "localhost");
+        ctx.setProperty(Constants.TO_PORT, 8280);
+
+        Map headers = (Map) request.getHttpHeaders();
+        headers.put("Custom-Header", "Hello");
+
+        ctx.setProperty(Constants.OUTGOING_REQUEST, createHttpRequest(ctx, "/services/echo"));
+
+        sender.send(ctx);
 
         return true;
     }
+
+    private HttpRequest createHttpRequest(CommonContext context, String uri) {
+
+        Request incomingRequest = (Request) context.getProperty(Constants.INCOMING_REQUEST);
+
+        HttpMethod httpMethod = new HttpMethod(incomingRequest.getHttpMethod().name());
+        HttpVersion httpVersion = new HttpVersion(incomingRequest.getHttpVersion().text(), true);
+        Map headers = (Map) incomingRequest.getHttpHeaders();
+
+        HttpRequest outgoinRequest = new DefaultHttpRequest(httpVersion, httpMethod, uri);
+
+        if (headers != null) {
+            Iterator iterator = headers.keySet().iterator();
+            while (iterator.hasNext()) {
+                String key = (String) iterator.next();
+                outgoinRequest.headers().add(key, headers.get(key));
+            }
+        }
+
+        return outgoinRequest;
+    }
+
+
 }

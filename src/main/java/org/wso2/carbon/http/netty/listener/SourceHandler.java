@@ -88,7 +88,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             sourceRequest.setPipe(new Pipe("sourcePipe"));
             requestList.add(sourceRequest);
             ListenerWorkerPool.getInstance().submitJob(new SourceWorker(outboundHandler,
-                    sourceRequest, this, engine));
+                    sourceRequest, this, engine, bootstrap));
         } else if (msg instanceof HttpContent) {
             if (requestList.get(0) != null) {
                 if (msg instanceof LastHttpContent) {

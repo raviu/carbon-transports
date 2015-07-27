@@ -90,7 +90,7 @@ public class Request {
         this.contentBytes = contentBytes;
     }
 
-    public Map<String, String> getHttpheaders() {
+    public Map<String, String> getHttpHeaders() {
         return httpheaders;
     }
 

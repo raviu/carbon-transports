@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.http.netty.listener;
 
+import io.netty.bootstrap.Bootstrap;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.controller.Engine;
 import org.wso2.carbon.http.netty.common.Constants;
@@ -28,25 +29,28 @@ import org.wso2.carbon.context.DefaultCommonContext;
 public class SourceWorker implements Runnable {
     private static Logger log = Logger.getLogger(SourceWorker.class);
 
+    private Engine engine;
     private Request sourceRequest;
     private SourceHandler inboudnHandler;
     private CommonContext commonContext;
     private TargetHandler outboundHandler;
-    private Engine engine;
+    private Bootstrap bootstrap;
 
     public SourceWorker(TargetHandler outboundHandler, Request sourceRequest,
-                        SourceHandler inboudnHandler, Engine engine) {
+                        SourceHandler inboudnHandler, Engine engine, Bootstrap bootstrap) {
+        this.engine = engine;
         this.sourceRequest = sourceRequest;
         this.inboudnHandler = inboudnHandler;
         this.commonContext = new DefaultCommonContext();
         this.commonContext.setProperty("REQUEST", sourceRequest);
         this.outboundHandler = outboundHandler;
-        this.engine = engine;
+        this.bootstrap = bootstrap;
     }
 
     public void run() {
         DefaultCommonContext ctx = new DefaultCommonContext();
-        ctx.setProperty(Constants.MSG_OBJ, sourceRequest);
+        ctx.setProperty(Constants.INCOMING_REQUEST, sourceRequest);
+        ctx.setProperty(Constants.BOOTSTRAP, bootstrap);
         engine.receive(ctx);
     }
 
@@ -54,6 +58,5 @@ public class SourceWorker implements Runnable {
     public TargetHandler getOutboundHandler() {
         return outboundHandler;
     }
-
 
 }

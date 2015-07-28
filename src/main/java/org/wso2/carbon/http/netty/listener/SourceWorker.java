@@ -25,6 +25,8 @@ import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Request;
 
+import java.util.UUID;
+
 public class SourceWorker implements Runnable {
     private static Logger log = Logger.getLogger(SourceWorker.class);
 
@@ -41,6 +43,7 @@ public class SourceWorker implements Runnable {
 
     public void run() {
         CarbonMessage msg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
+        msg.setId(UUID.randomUUID());
         msg.setProperty(Constants.PROTOCOL_NAME, Constants.REQUEST, sourceRequest);
         msg.setProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX, sourceRequestCtx);
         msg.setProperty(Constants.PROTOCOL_NAME, Constants.PIPE, sourceRequest.getPipe());

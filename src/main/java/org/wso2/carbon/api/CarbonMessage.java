@@ -18,8 +18,12 @@
 package org.wso2.carbon.api;
 
 import java.util.Map;
+import java.util.UUID;
 
 public interface CarbonMessage {
+
+    UUID getId();
+    void setId(UUID id);
 
     String getHost();
     void setHost(String host);

@@ -21,11 +21,14 @@ import org.wso2.carbon.api.CarbonMessage;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class CarbonMessageImpl implements CarbonMessage {
 
     public static int IN = 0;
     public static int OUT = 1;
+
+    private UUID id;
 
     private String protocol;
     private int port;
@@ -33,6 +36,14 @@ public class CarbonMessageImpl implements CarbonMessage {
     private String to;
     private String replyTo;
     private int direction = IN;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     private Map<String, Map<String, Object>> properties = new HashMap<String, Map<String, Object>>();
 

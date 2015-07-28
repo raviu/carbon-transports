@@ -29,6 +29,7 @@ import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Pipe;
 import org.wso2.carbon.http.netty.common.Response;
+import org.wso2.carbon.http.netty.common.WorkerPool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +64,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             response.setStatusLine(defaultHttpResponse.getStatus().toString());
             response.setPipe(new Pipe(Constants.TARGET_PIPE));
             responseList.add(response);
-            TargetWorkerPool.submitJob(new TargetWorker(engine, inboundChannelHandlerContext,
+            WorkerPool.submitJob(new TargetWorker(engine, inboundChannelHandlerContext,
                     response));
         } else if (msg instanceof HttpContent) {
             if (responseList.get(0) != null) {

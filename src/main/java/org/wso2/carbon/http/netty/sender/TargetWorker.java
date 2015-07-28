@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonMessage;
+import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Response;
@@ -35,44 +36,31 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 public class TargetWorker implements Runnable {
     private static Logger log = Logger.getLogger(TargetWorker.class);
 
+    private Engine engine;
     private Response targetResponse;
     private ChannelHandlerContext channelHandlerContext;
 
-    public TargetWorker(ChannelHandlerContext channelHandlerContext,
+    public TargetWorker(Engine engine, ChannelHandlerContext channelHandlerContext,
                         Response targetResponse) {
+        this.engine = engine;
         this.targetResponse = targetResponse;
         this.channelHandlerContext = channelHandlerContext;
     }
 
     public void run() {
-        writeResponse(channelHandlerContext);
+        //TODO call Engine.receive();
+        CarbonMessage msg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
+        msg.setDirection(CarbonMessageImpl.OUT);
+        msg.setProperty(Constants.PROTOCOL_NAME, Constants.RESPONSE, targetResponse);
+        msg.setProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX, channelHandlerContext);
+        msg.setProperty(Constants.PROTOCOL_NAME, Constants.PIPE, targetResponse.getPipe());
+
+        engine.receive(msg);
     }
 
     public ChannelHandlerContext getInboundChannelHandlerContext() {
         return channelHandlerContext;
     }
 
-    private void writeResponse(ChannelHandlerContext channelHandlerContext) {
-        ByteBuf content = Unpooled.unreleasableBuffer(Unpooled.buffer());
-
-        DefaultHttpResponse defaultHttpResponse = new DefaultHttpResponse(HTTP_1_1, OK);
-
-        if (targetResponse.getHttpheaders() != null) {
-            for (String k : targetResponse.getHttpheaders().keySet()) {
-                defaultHttpResponse.headers().add(k, targetResponse.getHeader(k));
-            }
-        }
-        channelHandlerContext.write(defaultHttpResponse);
-        while (true) {
-            HttpContent httpContent = targetResponse.getPipe().getContent();
-            if (httpContent instanceof LastHttpContent || httpContent instanceof DefaultLastHttpContent) {
-                //    trailingHeadrs = pipe.getTrailingheaderMap();
-                channelHandlerContext.writeAndFlush(httpContent);
-                break;
-            }
-            channelHandlerContext.write(httpContent);
-        }
-
-    }
 
 }

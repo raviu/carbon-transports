@@ -18,6 +18,7 @@
 package org.wso2.carbon.http.netty.listener;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelHandlerContext;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
@@ -25,41 +26,27 @@ import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Request;
 import org.wso2.carbon.http.netty.sender.TargetHandler;
-import org.wso2.carbon.context.CommonContext;
-import org.wso2.carbon.context.DefaultCommonContext;
 
 public class SourceWorker implements Runnable {
     private static Logger log = Logger.getLogger(SourceWorker.class);
 
     private Engine engine;
     private Request sourceRequest;
-    private SourceHandler inboudnHandler;
-    private CommonContext commonContext;
-    private TargetHandler outboundHandler;
-    private Bootstrap bootstrap;
+    private ChannelHandlerContext sourceRequestCtx;
 
-    public SourceWorker(TargetHandler outboundHandler, Request sourceRequest,
-                        SourceHandler inboudnHandler, Engine engine, Bootstrap bootstrap) {
+    public SourceWorker(Engine engine, Request sourceRequest,
+                        ChannelHandlerContext sourceRequestCtx) {
         this.engine = engine;
         this.sourceRequest = sourceRequest;
-        this.inboudnHandler = inboudnHandler;
-        this.commonContext = new DefaultCommonContext();
-        this.commonContext.setProperty("REQUEST", sourceRequest);
-        this.outboundHandler = outboundHandler;
-        this.bootstrap = bootstrap;
+        this.sourceRequestCtx = sourceRequestCtx;
     }
 
     public void run() {
         CarbonMessage msg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
         msg.setProperty(Constants.PROTOCOL_NAME, Constants.REQUEST, sourceRequest);
-        msg.setProperty(Constants.PROTOCOL_NAME, Constants.BOOTSTRAP, bootstrap);
+        msg.setProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX, sourceRequestCtx);
         msg.setProperty(Constants.PROTOCOL_NAME, Constants.PIPE, sourceRequest.getPipe());
         engine.receive(msg);
-    }
-
-
-    public TargetHandler getOutboundHandler() {
-        return outboundHandler;
     }
 
 }

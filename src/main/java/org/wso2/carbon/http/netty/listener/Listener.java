@@ -41,7 +41,7 @@ public class Listener extends org.wso2.carbon.CarbonTransport {
     private EventLoopGroup workerGroup =
             new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
 
-    public Listener(int port, EngineImpl engine) {
+    public Listener(int port, Engine engine) {
         super(ID);
         this.port = port;
         this.engine = engine;

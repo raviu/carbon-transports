@@ -17,16 +17,16 @@
  */
 package org.wso2.carbon.controller;
 
+import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.http.netty.listener.Listener;
 import org.wso2.carbon.http.netty.sender.Sender;
 
 public class POCController {
 
     public static void main(String[] args) {
-
         Sender sender = new Sender();
-
-        Listener listener = new Listener(9090, new EngineImpl(sender));
+        Engine engine = new EngineImpl(sender);
+        Listener listener = new Listener(9090, engine);
         listener.start();
 
     }

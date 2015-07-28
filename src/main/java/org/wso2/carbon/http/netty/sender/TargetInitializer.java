@@ -23,6 +23,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpClientCodec;
+import org.wso2.carbon.api.Engine;
 
 public class TargetInitializer extends ChannelInitializer<SocketChannel> {
 
@@ -30,16 +31,14 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
 
     private TargetHandler outboundHandler;
 
-    public TargetInitializer(ChannelHandlerContext inboundCtx) {
-        outboundHandler = new TargetHandler(inboundCtx);
+    public TargetInitializer(Engine engine, ChannelHandlerContext inboundCtx) {
+        outboundHandler = new TargetHandler(engine, inboundCtx);
     }
-
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline p = ch.pipeline();
         p.addLast("codec", new HttpClientCodec());
         p.addLast(HANDLER, outboundHandler);
-
     }
 }

@@ -24,8 +24,8 @@ import java.util.Map;
 
 public class CarbonMessageImpl implements CarbonMessage {
 
-    private static int IN = 0;
-    private static int OUT = 1;
+    public static int IN = 0;
+    public static int OUT = 1;
 
     private String protocol;
     private int port;

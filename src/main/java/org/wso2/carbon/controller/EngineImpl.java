@@ -32,6 +32,7 @@ public class EngineImpl implements org.wso2.carbon.api.Engine {
 
     public EngineImpl(TransportSender sender) {
         this.sender = sender;
+        sender.setEngine(this);
     }
 
     public boolean init() {
@@ -39,19 +40,24 @@ public class EngineImpl implements org.wso2.carbon.api.Engine {
     }
 
     public boolean receive(CarbonMessage msg) {
-        log.info("Engine receive");
-        Request request = (Request) msg.getProperty(ENGINE_PROTOCOL, Constants.REQUEST);
-        log.info(request.getHttpMethod() + " " + request.getUri() + " " + request.getHttpVersion());
 
-        CarbonMessage outMsg = new CarbonMessageImpl(ENGINE_PROTOCOL);
+        if (msg.getDirection() == CarbonMessageImpl.IN) {
+            log.info("Engine receive");
+            Request request = (Request) msg.getProperty(ENGINE_PROTOCOL, Constants.REQUEST);
+            log.info(request.getHttpMethod() + " " + request.getUri() + " " + request.getHttpVersion());
 
-        log.info("Forward Message");
-        outMsg.setHost("localhost");
-        outMsg.setPort(8280);
-        outMsg.setURI("/services/echo");
-        outMsg.setProperties(msg.getProperties());
-        outMsg.setProperty(ENGINE_PROTOCOL, "Custom-Header", "Hello");
-        sender.send(outMsg);
+            CarbonMessage outMsg = new CarbonMessageImpl(ENGINE_PROTOCOL);
+
+            log.info("Forward Message");
+            outMsg.setHost("localhost");
+            outMsg.setPort(8280);
+            outMsg.setURI("/services/echo");
+            outMsg.setProperties(msg.getProperties());
+            outMsg.setProperty(ENGINE_PROTOCOL, "Custom-Header", "Hello");
+            sender.send(outMsg);
+        } else {
+            sender.sendBack(msg);
+        }
 
         return true;
     }

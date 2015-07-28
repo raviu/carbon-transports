@@ -18,25 +18,37 @@
 package org.wso2.carbon.http.netty.sender;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
 import org.wso2.carbon.api.CarbonMessage;
+import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Request;
+import org.wso2.carbon.http.netty.common.Response;
 
 import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.Map;
 
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+
 
 public class Sender extends TransportSender {
-
 
     public Sender() {
         super(Constants.PROTOCOL_NAME);
@@ -47,7 +59,7 @@ public class Sender extends TransportSender {
     }
 
     public boolean send(CarbonMessage msg) {
-        Bootstrap bootstrap = (Bootstrap) msg.getProperty(Constants.PROTOCOL_NAME, Constants.BOOTSTRAP);
+        Bootstrap bootstrap = getBootstrap(msg);
 
         InetSocketAddress address = new InetSocketAddress(msg.getHost(), msg.getPort());
 
@@ -70,6 +82,34 @@ public class Sender extends TransportSender {
         return false;
     }
 
+    public boolean sendBack(CarbonMessage msg) {
+        ChannelHandlerContext ctx = (ChannelHandlerContext)
+                msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
+
+        Response response = (Response) msg.getProperty(Constants.PROTOCOL_NAME,
+                Constants.RESPONSE);
+
+        writeResponse(ctx, response);
+
+        return false;
+    }
+
+    private Bootstrap getBootstrap(CarbonMessage msg) {
+        ChannelHandlerContext ctx = (ChannelHandlerContext)
+                msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
+
+        final Channel inboundChannel = ctx.channel();
+        Bootstrap bootstrap = new Bootstrap();
+        bootstrap.group(inboundChannel.eventLoop())
+                .channel(ctx.channel().getClass())
+                .handler(new TargetInitializer(getEngine(), ctx));
+        bootstrap.option(ChannelOption.TCP_NODELAY, true);
+        bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);;
+        bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
+        bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
+
+        return bootstrap;
+    }
 
     private HttpRequest createHttpRequest(CarbonMessage msg, String uri) {
 
@@ -99,5 +139,29 @@ public class Sender extends TransportSender {
         }
 
         return outgoinRequest;
+    }
+
+
+    private void writeResponse(ChannelHandlerContext channelHandlerContext, Response response) {
+        ByteBuf content = Unpooled.unreleasableBuffer(Unpooled.buffer());
+
+        DefaultHttpResponse defaultHttpResponse = new DefaultHttpResponse(HTTP_1_1, OK);
+
+        if (response.getHttpheaders() != null) {
+            for (String k : response.getHttpheaders().keySet()) {
+                defaultHttpResponse.headers().add(k, response.getHeader(k));
+            }
+        }
+        channelHandlerContext.write(defaultHttpResponse);
+        while (true) {
+            HttpContent httpContent = response.getPipe().getContent();
+            if (httpContent instanceof LastHttpContent || httpContent instanceof DefaultLastHttpContent) {
+                //    trailingHeadrs = pipe.getTrailingheaderMap();
+                channelHandlerContext.writeAndFlush(httpContent);
+                break;
+            }
+            channelHandlerContext.write(httpContent);
+        }
+
     }
 }

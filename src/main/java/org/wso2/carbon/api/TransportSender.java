@@ -20,13 +20,23 @@ package org.wso2.carbon.api;
 public abstract class TransportSender {
 
     private String protocol;
+    private Engine engine;
 
     public TransportSender(String protocol) {
         this.protocol = protocol;
+    }
+
+    public Engine getEngine() {
+        return engine;
+    }
+
+    public void setEngine(Engine engine) {
+        this.engine = engine;
     }
 
     public abstract boolean init();
 
     public abstract boolean send(CarbonMessage msg);
 
+    public abstract boolean sendBack(CarbonMessage msg);
 }

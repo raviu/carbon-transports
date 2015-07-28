@@ -26,6 +26,8 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Pipe;
 import org.wso2.carbon.http.netty.common.Response;
 
@@ -36,11 +38,12 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
     private static Logger log = Logger.getLogger(TargetHandler.class);
     private ChannelHandlerContext inboundChannelHandlerContext;
-
+    private Engine engine;
     private List<Response> responseList = new ArrayList<Response>();
 
-    public TargetHandler(ChannelHandlerContext inboundChannelHandlerContext) {
+    public TargetHandler(Engine engine, ChannelHandlerContext inboundChannelHandlerContext) {
         this.inboundChannelHandlerContext = inboundChannelHandlerContext;
+        this.engine = engine;
     }
 
     @Override
@@ -59,9 +62,10 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             }
             response.setStatus(defaultHttpResponse.getStatus());
             response.setStatusLine(defaultHttpResponse.getStatus().toString());
-            response.setPipe(new Pipe("TargetPipe"));
+            response.setPipe(new Pipe(Constants.TARGET_PIPE));
             responseList.add(response);
-            TargetWorkerPool.submitJob(new TargetWorker(inboundChannelHandlerContext, response));
+            TargetWorkerPool.submitJob(new TargetWorker(engine, inboundChannelHandlerContext,
+                    response));
         } else if (msg instanceof HttpContent) {
             if (responseList.get(0) != null) {
                 if (msg instanceof LastHttpContent) {

@@ -22,6 +22,7 @@ public class Constants {
     public static String PROTOCOL_NAME = "http";
 
     public static String PIPE = "PIPE";
+    public static String CHNL_HNDLR_CTX = "CHNL_HNDLR_CTX";
 
     public static String REQUEST = "REQUEST";
     public static String RESPONSE = "RESPONSE";
@@ -31,5 +32,8 @@ public class Constants {
     public static String TO_SCHEME = "TO_SCHEME";
     public static String TO_HOST = "TO_HOST";
     public static String TO_PORT = "TO_PORT";
+
+    public static String SOURCE_PIPE = "SourcePipe";
+    public static String TARGET_PIPE = "TargetPipe";
 
 }

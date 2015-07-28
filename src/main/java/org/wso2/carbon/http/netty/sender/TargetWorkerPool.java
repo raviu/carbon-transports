@@ -9,7 +9,6 @@ public class TargetWorkerPool {
     private static TargetWorkerPool instance = new TargetWorkerPool();
     private static ExecutorService executorService ;
 
-
     private TargetWorkerPool() {
         executorService = Executors.newFixedThreadPool(100);
     }

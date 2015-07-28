@@ -22,7 +22,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
@@ -33,8 +32,6 @@ import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Pipe;
 import org.wso2.carbon.http.netty.common.Request;
 import org.wso2.carbon.http.netty.sender.TargetHandler;
-import org.wso2.carbon.http.netty.sender.TargetInitializer;
-
 
 import java.util.ArrayList;
 import java.util.List;

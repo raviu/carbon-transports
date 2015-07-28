@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.http.netty.listener;
 
-import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonMessage;
@@ -25,7 +24,6 @@ import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Request;
-import org.wso2.carbon.http.netty.sender.TargetHandler;
 
 public class SourceWorker implements Runnable {
     private static Logger log = Logger.getLogger(SourceWorker.class);

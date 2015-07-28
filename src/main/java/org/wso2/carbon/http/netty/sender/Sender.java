@@ -34,7 +34,6 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.wso2.carbon.api.CarbonMessage;
-import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Request;

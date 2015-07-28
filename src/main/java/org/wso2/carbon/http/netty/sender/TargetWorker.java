@@ -17,21 +17,13 @@
  */
 package org.wso2.carbon.http.netty.sender;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.DefaultLastHttpContent;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Response;
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 public class TargetWorker implements Runnable {
     private static Logger log = Logger.getLogger(TargetWorker.class);
@@ -48,7 +40,6 @@ public class TargetWorker implements Runnable {
     }
 
     public void run() {
-        //TODO call Engine.receive();
         CarbonMessage msg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
         msg.setDirection(CarbonMessageImpl.OUT);
         msg.setProperty(Constants.PROTOCOL_NAME, Constants.RESPONSE, targetResponse);

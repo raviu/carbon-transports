@@ -25,7 +25,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
-import org.wso2.carbon.controller.EngineImpl;
 
 public class Listener extends org.wso2.carbon.CarbonTransport {
     private static Logger log = Logger.getLogger(Listener.class);

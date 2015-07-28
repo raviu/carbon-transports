@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.http.netty.sender;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;

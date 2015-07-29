@@ -36,6 +36,7 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.http.netty.common.Constants;
+import org.wso2.carbon.http.netty.common.Pipe;
 import org.wso2.carbon.http.netty.common.Request;
 import org.wso2.carbon.http.netty.common.Response;
 
@@ -62,7 +63,8 @@ public class Sender extends TransportSender {
 
         InetSocketAddress address = new InetSocketAddress(msg.getHost(), msg.getPort());
 
-        final HttpRequest request = createHttpRequest(msg, msg.getURI());
+        final HttpRequest httpRequest = createHttpRequest(msg, msg.getURI());
+        final Request r = (Request) msg.getProperty(Constants.PROTOCOL_NAME, Constants.REQUEST);
 
         ChannelFuture f = bootstrap.connect(address);
         final Channel ch = f.channel();
@@ -70,7 +72,21 @@ public class Sender extends TransportSender {
 
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
-                    ch.writeAndFlush(request);
+                    ch.write(httpRequest);
+                    Pipe pipe = null;
+                    if (r.getPipe() != null) {
+                        pipe = (Pipe) r.getPipe();
+                    }
+                    while (true) {
+                        HttpContent defaultHttpContent = pipe.getContent();
+                        if (defaultHttpContent instanceof LastHttpContent) {
+                            ch.writeAndFlush(defaultHttpContent);
+                            break;
+                        }
+                        if (defaultHttpContent != null) {
+                            ch.write(defaultHttpContent);
+                        }
+                    }
                 } else {
                     // Close the connection if the connection attempt has failed.
                     ch.close();

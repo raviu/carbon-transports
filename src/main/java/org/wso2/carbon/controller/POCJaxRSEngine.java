@@ -17,20 +17,20 @@
  */
 package org.wso2.carbon.controller;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.common.CarbonMessageImpl;
-import org.wso2.carbon.http.netty.common.Constants;
-import org.wso2.carbon.http.netty.common.Request;
+import org.wso2.carbon.controller.builder.XMLBuilder;
 
-public class EngineImpl implements org.wso2.carbon.api.Engine {
-    private static Logger log = Logger.getLogger(EngineImpl.class);
+public class POCJaxRSEngine implements org.wso2.carbon.api.Engine {
+    private static Logger log = Logger.getLogger(POCJaxRSEngine.class);
 
     private static String ENGINE_PROTOCOL = "http";
     private TransportSender sender;
 
-    public EngineImpl(TransportSender sender) {
+    public POCJaxRSEngine(TransportSender sender) {
         this.sender = sender;
         sender.setEngine(this);
     }
@@ -42,21 +42,22 @@ public class EngineImpl implements org.wso2.carbon.api.Engine {
     public boolean receive(CarbonMessage msg) {
 
         if (msg.getDirection() == CarbonMessageImpl.IN) {
-            log.info("Engine receive");
-            Request request = (Request) msg.getProperty(ENGINE_PROTOCOL, Constants.REQUEST);
-            log.info(request.getHttpMethod() + " " + request.getUri() + " " + request.getHttpVersion());
+            log.info(msg.getProperty(ENGINE_PROTOCOL, "HTTP_METHOD") + " "
+                    + msg.getURI()  + " "
+                    + msg.getProperty(ENGINE_PROTOCOL, "HTTP_VERSION"));
 
-            CarbonMessage outMsg = new CarbonMessageImpl(ENGINE_PROTOCOL);
 
-            log.info("Forward Message");
-            outMsg.setHost("localhost");
-            outMsg.setPort(8280);
-            outMsg.setURI("/services/echo");
-            outMsg.setProperties(msg.getProperties());
-            outMsg.setProperty(ENGINE_PROTOCOL, "Custom-Header", "Hello");
-            sender.send(outMsg);
-        } else {
-            sender.sendBack(msg);
+            OMElement incoming = XMLBuilder.buildMessage(msg.getPipe());
+
+//            CarbonMessage outMsg = new CarbonMessageImpl(ENGINE_PROTOCOL);
+//
+//            log.info("Forward Message");
+//            outMsg.setHost("localhost");
+//            outMsg.setPort(8280);
+//            outMsg.setURI("/services/echo");
+//            outMsg.setProperties(msg.getProperties());
+//            outMsg.setProperty(ENGINE_PROTOCOL, "Custom-Header", "Hello");
+//            sender.send(outMsg);
         }
 
         return true;

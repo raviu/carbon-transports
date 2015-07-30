@@ -18,22 +18,21 @@
 package org.wso2.carbon.http.netty.common;
 
 public class Constants {
+    public static final String PROTOCOL_NAME = "http";
 
-    public static String PROTOCOL_NAME = "http";
+    public static final String HTTP_VERSION = "HTTP_VERSION";
 
-    public static String PIPE = "PIPE";
-    public static String CHNL_HNDLR_CTX = "CHNL_HNDLR_CTX";
+    public static final String HTTP_METHOD = "HTTP_METHOD";
 
-    public static String REQUEST = "REQUEST";
-    public static String RESPONSE = "RESPONSE";
+    public static final String TRANSPORT_HEADERS = "TRANSPORT_HEADERS";
 
-    public static String BOOTSTRAP = "BOOTSTRAP";
+    public static final String HTTP_STATUS_CODE = "HTTP_STATUS_CODE";
 
-    public static String TO_SCHEME = "TO_SCHEME";
-    public static String TO_HOST = "TO_HOST";
-    public static String TO_PORT = "TO_PORT";
+    public static final String SOURCE_PIPE = "SourcePipe";
 
-    public static String SOURCE_PIPE = "SourcePipe";
-    public static String TARGET_PIPE = "TargetPipe";
+    public static final String TARGET_PIPE = "TargetPipe";
 
+    public static final String CHNL_HNDLR_CTX = "CHNL_HNDLR_CTX";
+
+    public static final String REQUEST = "REQUEST";
 }

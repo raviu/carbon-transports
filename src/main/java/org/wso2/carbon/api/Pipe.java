@@ -17,30 +17,10 @@
  */
 package org.wso2.carbon.api;
 
-public abstract class TransportSender {
+public interface Pipe {
 
-    private String protocol;
-    private Engine engine;
+    ContentChunk getContent();
 
-    public TransportSender(String protocol) {
-        this.protocol = protocol;
-    }
+    void addContentChunk(ContentChunk chunk);
 
-    public Engine getEngine() {
-        return engine;
-    }
-
-    public void setEngine(Engine engine) {
-        this.engine = engine;
-    }
-
-    public String getProtocol() { return protocol; }
-
-    public void setProtocol(String protocol) { this.protocol = protocol; }
-
-    public abstract boolean init();
-
-    public abstract boolean send(CarbonMessage msg);
-
-    public abstract boolean sendBack(CarbonMessage msg);
 }

@@ -20,32 +20,47 @@ package org.wso2.carbon.api;
 import java.util.Map;
 import java.util.UUID;
 
-public interface CarbonMessage {
+public abstract class CarbonMessage {
+    public final static int IN = 0;
+    public final static int OUT = 1;
 
-    UUID getId();
-    void setId(UUID id);
+    abstract public UUID getId();
 
-    String getHost();
-    void setHost(String host);
+    abstract public void setId(UUID id);
 
-    int getPort();
-    void setPort(int port);
+    abstract public int getDirection();
 
-    String getURI();
-    void setURI(String to);
+    abstract public void setDirection(int direction);
 
-    String replyTo();
-    void setReplyTo(String replyTo);
+    abstract public Pipe getPipe();
 
-    int getDirection();
-    void setDirection(int direction);
+    abstract public void setPipe(Pipe pipe);
 
-    String getProtocol();
-    void setProtocol(String protocol);
+    abstract public String getHost();
 
-    Object getProperty(String protocol, String key);
-    void setProperty(String protocol, String key, Object value);
+    abstract public void setHost(String host);
 
-    Map<String, Map<String, Object>> getProperties();
-    void setProperties(Map<String, Map<String, Object>> properties);
+    abstract public int getPort();
+
+    abstract public void setPort(int port);
+
+    abstract public String getURI();
+
+    abstract public void setURI(String to);
+
+    abstract public String getReplyTo();
+
+    abstract public void setReplyTo(String replyTo);
+
+    abstract public String getProtocol();
+
+    abstract public void setProtocol(String protocol);
+
+    abstract public Object getProperty(String protocol, String key);
+
+    abstract public void setProperty(String protocol, String key, Object value);
+
+    abstract public Map<String, Map<String, Object>> getProperties();
+
+    abstract public void setProperties(Map<String, Map<String, Object>> properties);
 }

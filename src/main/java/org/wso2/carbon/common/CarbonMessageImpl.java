@@ -18,24 +18,27 @@
 package org.wso2.carbon.common;
 
 import org.wso2.carbon.api.CarbonMessage;
+import org.wso2.carbon.api.Pipe;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class CarbonMessageImpl implements CarbonMessage {
-
-    public static int IN = 0;
-    public static int OUT = 1;
+public class CarbonMessageImpl extends CarbonMessage {
 
     private UUID id;
-
-    private String protocol;
+    private int direction = IN;
     private int port;
+    private String protocol;
     private String host;
     private String to;
     private String replyTo;
-    private int direction = IN;
+    private Pipe pipe;
+    private Map<String, Map<String, Object>> properties = new HashMap<String, Map<String, Object>>();
+
+    public CarbonMessageImpl(String protocol) {
+        this.protocol = protocol;
+    }
 
     public UUID getId() {
         return id;
@@ -45,10 +48,12 @@ public class CarbonMessageImpl implements CarbonMessage {
         this.id = id;
     }
 
-    private Map<String, Map<String, Object>> properties = new HashMap<String, Map<String, Object>>();
+    public Pipe getPipe() {
+        return pipe;
+    }
 
-    public CarbonMessageImpl(String protocol) {
-        this.protocol = protocol;
+    public void setPipe(Pipe pipe) {
+        this.pipe = pipe;
     }
 
     public String getHost() {
@@ -75,7 +80,7 @@ public class CarbonMessageImpl implements CarbonMessage {
         this.to = to;
     }
 
-    public String replyTo() {
+    public String getReplyTo() {
         return replyTo;
     }
 
@@ -98,6 +103,7 @@ public class CarbonMessageImpl implements CarbonMessage {
     public void setProtocol(String protocol) {
         this.protocol = protocol;
     }
+
 
     public void setProperty(String protocol, String key, Object value) {
         Map<String, Object> protocolMap = properties.get(protocol);
@@ -127,4 +133,5 @@ public class CarbonMessageImpl implements CarbonMessage {
     public void setProperties(Map<String, Map<String, Object>> properties) {
         this.properties = properties;
     }
+
 }

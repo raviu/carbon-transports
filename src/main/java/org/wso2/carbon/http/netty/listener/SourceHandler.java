@@ -17,9 +17,6 @@
  */
 package org.wso2.carbon.http.netty.listener;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpContent;
@@ -27,98 +24,69 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
+import org.wso2.carbon.http.netty.common.HTTPContentChunk;
 import org.wso2.carbon.http.netty.common.Pipe;
-import org.wso2.carbon.http.netty.common.Request;
+import org.wso2.carbon.http.netty.common.Util;
+import org.wso2.carbon.http.netty.common.Worker;
 import org.wso2.carbon.http.netty.common.WorkerPool;
-import org.wso2.carbon.http.netty.sender.TargetHandler;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SourceHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(SourceHandler.class);
 
-    private Bootstrap bootstrap;
-    private ChannelFuture channelFuture;
-    private Channel channel;
-    private TargetHandler outboundHandler;
     private Engine engine;
+    private CarbonMessage cMsg;
+    private List<CarbonMessage> requestList = new ArrayList<CarbonMessage>();
 
-    private List<Request> requestList = new ArrayList<Request>();
 
     public SourceHandler(Engine engine) {
         this.engine = engine;
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        outboundHandler = new TargetHandler(engine, ctx);
-    }
-
-    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        Request sourceRequest = null;
         if (msg instanceof HttpRequest) {
-            sourceRequest = new Request();
-            HttpRequest defaultHttpRequest = (HttpRequest) msg;
-            HttpHeaders headers = defaultHttpRequest.headers();
-            for (String val : headers.names()) {
-                sourceRequest.addHttpheaders(val, headers.get(val));
-            }
-            sourceRequest.setTo(defaultHttpRequest.getUri());
-            sourceRequest.setHttpMethod(defaultHttpRequest.getMethod());
-            sourceRequest.setHttpVersion(defaultHttpRequest.getProtocolVersion());
-            sourceRequest.setUri(defaultHttpRequest.getUri());
-            sourceRequest.setInboundChannelHandlerContext(ctx);
-            sourceRequest.setBootstrap(bootstrap);
-            sourceRequest.setPipe(new Pipe(Constants.SOURCE_PIPE));
-            requestList.add(sourceRequest);
-            WorkerPool.submitJob(new SourceWorker(engine, sourceRequest, ctx));
+            HttpRequest httpRequest = (HttpRequest) msg;
+            cMsg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
+            cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
+            cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
+            cMsg.setURI(httpRequest.getUri());
+            cMsg.setProperty(Constants.PROTOCOL_NAME,
+                    Constants.HTTP_VERSION, httpRequest.getProtocolVersion().text());
+            cMsg.setProperty(Constants.PROTOCOL_NAME,
+                    Constants.HTTP_METHOD, httpRequest.getMethod().name());
+            cMsg.setProperty(Constants.PROTOCOL_NAME,
+                    Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));
+            cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX, ctx);
+
+            cMsg.setPipe(new Pipe(Constants.SOURCE_PIPE));
+            requestList.add(cMsg);
+            WorkerPool.submitJob(new Worker(engine, cMsg));
         } else if (msg instanceof HttpContent) {
-            if (requestList.get(0) != null) {
+            HTTPContentChunk chunk;
+            if (cMsg != null) {
                 if (msg instanceof LastHttpContent) {
-                    LastHttpContent defaultLastHttpContent = (LastHttpContent) msg;
-                    HttpHeaders trailingHeaders = defaultLastHttpContent.trailingHeaders();
+                    LastHttpContent lastHttpContent = (LastHttpContent) msg;
+                    HttpHeaders trailingHeaders = lastHttpContent.trailingHeaders();
                     for (String val : trailingHeaders.names()) {
-                        requestList.get(0).getPipe().addTrailingHeader(val, trailingHeaders.get(val));
+                        ((Pipe) cMsg.getPipe()).
+                                addTrailingHeader(val, trailingHeaders.get(val));
                     }
-                    requestList.get(0).getPipe().addContent(defaultLastHttpContent);
-                    requestList.remove(0);
+                    chunk =  new HTTPContentChunk(lastHttpContent);
+                    cMsg.getPipe().addContentChunk(chunk);
                 } else {
-                    HttpContent defaultHttpContent = (HttpContent) msg;
-                    requestList.get(0).getPipe().addContent(defaultHttpContent);
+                    HttpContent httpContent = (HttpContent) msg;
+                    chunk = new HTTPContentChunk(httpContent);
+                    cMsg.getPipe().addContentChunk(chunk);
                 }
-            } else {
-                log.error("Cannot correlate source request with content");
             }
         }
-
-
-    }
-
-    public Bootstrap getBootstrap() {
-        return bootstrap;
-    }
-
-    public void setBootstrap(Bootstrap bootstrap) {
-        this.bootstrap = bootstrap;
-    }
-
-    public ChannelFuture getChannelFuture() {
-        return channelFuture;
-    }
-
-    public void setChannelFuture(ChannelFuture channelFuture) {
-        this.channelFuture = channelFuture;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
-
-    public void setChannel(Channel channel) {
-        this.channel = channel;
     }
 }

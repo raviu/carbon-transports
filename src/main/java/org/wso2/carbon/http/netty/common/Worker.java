@@ -15,32 +15,31 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.api;
+package org.wso2.carbon.http.netty.common;
 
-public abstract class TransportSender {
+import org.apache.log4j.Logger;
+import org.wso2.carbon.api.CarbonMessage;
+import org.wso2.carbon.api.Engine;
 
-    private String protocol;
+import java.util.UUID;
+
+public class Worker implements Runnable {
+    private static Logger log = Logger.getLogger(Worker.class);
+
     private Engine engine;
+    private CarbonMessage msg;
 
-    public TransportSender(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public Engine getEngine() {
-        return engine;
-    }
-
-    public void setEngine(Engine engine) {
+    public Worker(Engine engine, CarbonMessage msg) {
         this.engine = engine;
+        this.msg = msg;
     }
 
-    public String getProtocol() { return protocol; }
+    public void run() {
+        if (msg.getDirection() == CarbonMessage.IN) {
+            msg.setId(UUID.randomUUID());
+        }
 
-    public void setProtocol(String protocol) { this.protocol = protocol; }
+        engine.receive(msg);
+    }
 
-    public abstract boolean init();
-
-    public abstract boolean send(CarbonMessage msg);
-
-    public abstract boolean sendBack(CarbonMessage msg);
 }

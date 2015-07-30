@@ -21,29 +21,31 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
+import org.wso2.carbon.http.netty.common.HTTPContentChunk;
 import org.wso2.carbon.http.netty.common.Pipe;
-import org.wso2.carbon.http.netty.common.Response;
+import org.wso2.carbon.http.netty.common.Util;
+import org.wso2.carbon.http.netty.common.Worker;
 import org.wso2.carbon.http.netty.common.WorkerPool;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.net.InetSocketAddress;
 
 public class TargetHandler extends ChannelInboundHandlerAdapter {
-
     private static Logger log = Logger.getLogger(TargetHandler.class);
-    private ChannelHandlerContext inboundChannelHandlerContext;
+
     private Engine engine;
-    private List<Response> responseList = new ArrayList<Response>();
+    private ChannelHandlerContext inboundChannelHandlerContext;
+    private CarbonMessage cMsg;
 
     public TargetHandler(Engine engine, ChannelHandlerContext inboundChannelHandlerContext) {
-        this.inboundChannelHandlerContext = inboundChannelHandlerContext;
         this.engine = engine;
+        this.inboundChannelHandlerContext = inboundChannelHandlerContext;
     }
 
     @Override
@@ -54,33 +56,35 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof HttpResponse) {
-            Response response = new Response();
-            HttpResponse defaultHttpResponse = (HttpResponse) msg;
-            HttpHeaders headers = defaultHttpResponse.headers();
-            for (String val : headers.names()) {
-                response.addHttpheaders(val, headers.get(val));
-            }
-            response.setStatus(defaultHttpResponse.getStatus());
-            response.setStatusLine(defaultHttpResponse.getStatus().toString());
-            response.setPipe(new Pipe(Constants.TARGET_PIPE));
-            responseList.add(response);
-            WorkerPool.submitJob(new TargetWorker(engine, inboundChannelHandlerContext,
-                    response));
+            HttpResponse httpResponse = (HttpResponse) msg;
+
+            cMsg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
+            cMsg.setDirection(CarbonMessageImpl.OUT);
+            cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
+            cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
+            cMsg.setProperty(Constants.PROTOCOL_NAME,
+                    Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
+            cMsg.setProperty(Constants.PROTOCOL_NAME,
+                    Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
+            cMsg.setProperty(Constants.PROTOCOL_NAME,
+                    Constants.CHNL_HNDLR_CTX, inboundChannelHandlerContext);
+            cMsg.setPipe(new Pipe(Constants.TARGET_PIPE));
+
+            WorkerPool.submitJob(new Worker(engine, cMsg));
         } else if (msg instanceof HttpContent) {
-            if (responseList.get(0) != null) {
+            if (cMsg != null) {
                 if (msg instanceof LastHttpContent) {
-                    LastHttpContent defaultLastHttpContent = (LastHttpContent) msg;
-                    responseList.get(0).getPipe().addContent(defaultLastHttpContent);
-                    responseList.remove(0);
+                    LastHttpContent lastHttpContent = (LastHttpContent) msg;
+                    HTTPContentChunk chunk = new HTTPContentChunk(lastHttpContent);
+                    cMsg.getPipe().addContentChunk(chunk);
                 } else {
-                    DefaultHttpContent defaultHttpContent = (DefaultHttpContent) msg;
-                    //  responseList.get(0).getPipe().writeContent(defaultHttpContent);
-                    responseList.get(0).getPipe().addContent(defaultHttpContent);
+                    DefaultHttpContent httpContent = (DefaultHttpContent) msg;
+                    HTTPContentChunk chunk = new HTTPContentChunk(httpContent);
+                    cMsg.getPipe().addContentChunk(chunk);
                 }
 
             }
         }
     }
-
 
 }

@@ -17,30 +17,11 @@
  */
 package org.wso2.carbon.api;
 
-public abstract class TransportSender {
+import java.nio.ByteBuffer;
 
-    private String protocol;
-    private Engine engine;
+public interface ContentChunk {
 
-    public TransportSender(String protocol) {
-        this.protocol = protocol;
-    }
+    ByteBuffer[] getContentChunk();
 
-    public Engine getEngine() {
-        return engine;
-    }
-
-    public void setEngine(Engine engine) {
-        this.engine = engine;
-    }
-
-    public String getProtocol() { return protocol; }
-
-    public void setProtocol(String protocol) { this.protocol = protocol; }
-
-    public abstract boolean init();
-
-    public abstract boolean send(CarbonMessage msg);
-
-    public abstract boolean sendBack(CarbonMessage msg);
+    boolean isLastChunk();
 }

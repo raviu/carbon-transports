@@ -25,10 +25,16 @@ public class POCController {
 
     public static void main(String[] args) {
         Sender sender = new Sender();
-        Engine engine = new EngineImpl(sender);
+        Engine engine = new POCMediationEngine(sender);
+
+        if (args.length == 1) {
+            if (args[0].equals("jaxrs")) {
+                engine = new POCJaxRSEngine(sender);
+            }
+        }
+
         Listener listener = new Listener(9090, engine);
         listener.start();
-
     }
 
 }

@@ -17,108 +17,45 @@
  */
 package org.wso2.carbon.http.netty.common;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.DefaultHttpContent;
-import io.netty.handler.codec.http.HttpContent;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.api.ContentChunk;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
-public class Pipe {
+public class Pipe implements org.wso2.carbon.api.Pipe {
     private static Logger log = Logger.getLogger(Pipe.class);
 
     private String name = "Buffer";
 
-    private byte[] content;
-
-    private BlockingQueue<HttpContent> contentQueue = new LinkedBlockingQueue<HttpContent>();
-
+    private BlockingQueue<ContentChunk> contentQueue = new LinkedBlockingQueue<ContentChunk>();
 
     private Map trailingheaders = new ConcurrentHashMap<String, String>();
 
-    private Lock lock = new ReentrantLock();
-
-    private Condition readCondition = lock.newCondition();
-
     public Pipe(String name) {
         this.name = name;
-
     }
 
-    public void writeContent(DefaultHttpContent defaultHttpContent) {
-        lock.lock();
+    public ContentChunk getContent() {
         try {
-            ByteBuf buf = defaultHttpContent.content();
-            content = new byte[buf.readableBytes()];
-            buf.readBytes(content);
-            readCondition.signalAll();
-
-        } finally {
-            lock.unlock();
+            return contentQueue.take();
+        } catch (InterruptedException e) {
+            log.error("Error while retrieving chunk from queue.", e);
+            return null;
         }
-
     }
 
-    public void writeFullContent(byte[] bytes) {
-        content = bytes;
-    }
-
-
-    public byte[] readContent() {
-        lock.lock();
-        try {
-            waitForData();
-            return content;
-        } catch (IOException e) {
-            log.error("Error while reading content.", e);
-        } finally {
-            lock.unlock();
-        }
-        return content;
+    public void addContentChunk(ContentChunk contentChunk) {
+        contentQueue.add(contentChunk);
     }
 
     public void addTrailingHeader(String key, String value) {
         trailingheaders.put(key, value);
     }
 
-
     public Map getTrailingheaderMap() {
         return trailingheaders;
-    }
-
-
-    private void waitForData() throws IOException {
-        lock.lock();
-        try {
-            try {
-                while (content == null) {
-                    readCondition.await();
-                }
-            } catch (InterruptedException e) {
-                throw new IOException("Interrupted while waiting for data");
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public HttpContent getContent() {
-        try {
-            return contentQueue.take();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public void addContent(HttpContent defaultHttpContent) {
-        contentQueue.add(defaultHttpContent);
     }
 }

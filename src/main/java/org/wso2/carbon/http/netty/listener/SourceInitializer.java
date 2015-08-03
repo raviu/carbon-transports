@@ -24,9 +24,6 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
-import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
-
-import java.util.List;
 
 public class SourceInitializer extends ChannelInitializer<SocketChannel> {
 

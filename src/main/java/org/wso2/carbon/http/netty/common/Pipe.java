@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.http.netty.common;
 
-import io.netty.handler.codec.http.HttpContent;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.ContentChunk;
 
@@ -25,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Pipe implements org.wso2.carbon.api.Pipe {

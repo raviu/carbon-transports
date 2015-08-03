@@ -24,4 +24,8 @@ hs_err_pid*
 
 # misc
 target
-
+out.txt
+perf.zip
+perf
+thread-dump.txt
+#

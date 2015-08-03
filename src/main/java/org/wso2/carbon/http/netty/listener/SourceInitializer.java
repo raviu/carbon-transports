@@ -23,6 +23,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpServerCodec;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
+
+import java.util.List;
 
 public class SourceInitializer extends ChannelInitializer<SocketChannel> {
 
@@ -45,6 +48,11 @@ public class SourceInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline p = ch.pipeline();
         p.addLast(HTTP_CODEC, new HttpServerCodec());
         p.addLast(HANDLER, new SourceHandler(engine));
+
+        List<CarbonNettyChannelInitializer> channelInitializers = NettyTransportDataHolder.getInstance().getChannelInitializers();
+        for(CarbonNettyChannelInitializer initializer : channelInitializers) {
+            initializer.initChannel(ch);
+        }
     }
 
 }

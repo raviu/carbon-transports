@@ -25,8 +25,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.transports.CarbonTransport;
 
-public class Listener extends org.wso2.carbon.CarbonTransport {
+public class Listener extends CarbonTransport {
     private static Logger log = Logger.getLogger(Listener.class);
 
     private static String ID = "HTTP-netty";
@@ -81,25 +82,18 @@ public class Listener extends org.wso2.carbon.CarbonTransport {
                 "Inbound Listener"
         );
         listenerThread.start();
-        super.start();
     }
 
     @Override
     public void stop() {
-
-        super.stop();
     }
 
     @Override
     public void beginMaintenance() {
-
-        super.beginMaintenance();
     }
 
     @Override
     public void endMaintenance() {
-
-        super.endMaintenance();
     }
 
 }

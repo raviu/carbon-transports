@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.http.netty.common;
 
+import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.wso2.carbon.api.ContentChunk;
@@ -29,7 +30,7 @@ public class HTTPContentChunk implements ContentChunk {
     boolean lastChunk = false;
 
     public HTTPContentChunk(HttpContent content) {
-        if (content instanceof LastHttpContent) {
+        if (content instanceof LastHttpContent || content instanceof DefaultLastHttpContent) {
             lastChunk = true;
         }
         httpContent = content;

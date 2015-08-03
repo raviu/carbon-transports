@@ -21,20 +21,45 @@ import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.http.netty.listener.Listener;
 import org.wso2.carbon.http.netty.sender.Sender;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Properties;
+
 public class POCController {
+
+    public static Properties props = new Properties();
 
     public static void main(String[] args) {
         Sender sender = new Sender();
         Engine engine = new POCMediationEngine(sender);
 
-        if (args.length == 1) {
+        if (args.length == 2) {
             if (args[0].equals("jaxrs")) {
                 engine = new POCJaxRSEngine(sender);
             }
-        }
 
-        Listener listener = new Listener(9090, engine);
-        listener.start();
+            File propFile = new File(args[1]);
+            try {
+                FileInputStream fis = new FileInputStream(propFile);
+                props.load(fis);
+            } catch (Exception e) {
+                showUsage();
+                e.printStackTrace();
+                System.exit(0);
+            }
+
+            Listener listener = new Listener(Integer.valueOf(props.getProperty("port", "9090")), engine);
+            listener.start();
+        } else {
+            showUsage();
+        }
+    }
+
+    private static void showUsage() {
+        System.out.println("\n\n");
+        System.out.println("Usage: java -jar server.jar <default |  " +
+                "jaxrs> /path/to/properties.prop");
+        System.out.println("\n");
     }
 
 }

@@ -25,6 +25,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.controller.POCController;
 
 public class Listener extends org.wso2.carbon.CarbonTransport {
     private static Logger log = Logger.getLogger(Listener.class);
@@ -36,9 +37,11 @@ public class Listener extends org.wso2.carbon.CarbonTransport {
     private Engine engine;
 
     private EventLoopGroup bossGroup =
-            new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
+            new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
+                    "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
     private EventLoopGroup workerGroup =
-            new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
+            new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
+                    "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));
 
     public Listener(int port, Engine engine) {
         super(ID);
@@ -50,7 +53,6 @@ public class Listener extends org.wso2.carbon.CarbonTransport {
     public void start() {
         listenerThread = new Thread(new Runnable() {
             public void run() {
-
                 try {
                     ServerBootstrap b = new ServerBootstrap();
                     b.option(ChannelOption.SO_BACKLOG, 10);
@@ -81,6 +83,7 @@ public class Listener extends org.wso2.carbon.CarbonTransport {
                 "Inbound Listener"
         );
         listenerThread.start();
+        log.info("Listener started on port " + port);
         super.start();
     }
 

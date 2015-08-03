@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.http.netty.common;
 
+import io.netty.handler.codec.http.HttpContent;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.ContentChunk;
 
@@ -24,6 +25,8 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Pipe implements org.wso2.carbon.api.Pipe {
     private static Logger log = Logger.getLogger(Pipe.class);
@@ -33,6 +36,10 @@ public class Pipe implements org.wso2.carbon.api.Pipe {
     private BlockingQueue<ContentChunk> contentQueue = new LinkedBlockingQueue<ContentChunk>();
 
     private Map trailingheaders = new ConcurrentHashMap<String, String>();
+
+    private AtomicBoolean isReadComplete = new AtomicBoolean(false);
+
+    private AtomicBoolean isWriteComplete = new AtomicBoolean(false);
 
     public Pipe(String name) {
         this.name = name;
@@ -48,7 +55,18 @@ public class Pipe implements org.wso2.carbon.api.Pipe {
     }
 
     public void addContentChunk(ContentChunk contentChunk) {
+        if (contentChunk.isLastChunk()) {
+            isReadComplete.getAndSet(true);
+        }
         contentQueue.add(contentChunk);
+    }
+
+    public boolean isWriteComplete() {
+        return isWriteComplete.get();
+    }
+
+    public boolean isReadComplete() {
+        return isReadComplete.get();
     }
 
     public void addTrailingHeader(String key, String value) {

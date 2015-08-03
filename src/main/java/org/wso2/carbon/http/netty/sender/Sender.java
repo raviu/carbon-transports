@@ -22,9 +22,9 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -39,6 +39,7 @@ import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.HTTPContentChunk;
 import org.wso2.carbon.http.netty.common.Util;
+import org.wso2.carbon.http.netty.listener.SourceHandler;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -58,74 +59,114 @@ public class Sender extends TransportSender {
     }
 
     public boolean send(CarbonMessage msg) {
-        Bootstrap bootstrap = getBootstrap(msg);
-
-        InetSocketAddress address = new InetSocketAddress(msg.getHost(), msg.getPort());
+        final ChannelHandlerContext inboundCtx = (ChannelHandlerContext)
+                msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
 
         final HttpRequest httpRequest = createHttpRequest(msg);
         final Pipe pipe = msg.getPipe();
 
-        ChannelFuture f = bootstrap.connect(address);
-        final Channel ch = f.channel();
-        f.addListener(new ChannelFutureListener() {
+        final SourceHandler srcHandler = (SourceHandler) msg.getProperty(
+                Constants.PROTOCOL_NAME, Constants.SRC_HNDLR);
 
-            public void operationComplete(ChannelFuture future) throws Exception {
-                if (future.isSuccess()) {
-                    ch.write(httpRequest);
-                    while (true) {
-                        HTTPContentChunk chunk = (HTTPContentChunk) pipe.getContent();
-                        HttpContent content = chunk.getHttpContent();
-                        if (content instanceof LastHttpContent) {
-                            ch.writeAndFlush(content);
-                            break;
+        Bootstrap bootstrap = srcHandler.getBootstrap();
+
+        InetSocketAddress address = new InetSocketAddress(msg.getHost(), msg.getPort());
+
+        if (srcHandler.getChannelFuture() == null) {
+            ChannelFuture future = bootstrap.connect(address);
+            final Channel outboundChannel = future.channel();
+
+            future.addListener(new ChannelFutureListener() {
+
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    if (future.isSuccess()) {
+                        outboundChannel.write(httpRequest);
+                        while (true) {
+                            HTTPContentChunk chunk = (HTTPContentChunk) pipe.getContent();
+                            HttpContent httpContent = chunk.getHttpContent();
+                            if (httpContent instanceof LastHttpContent) {
+                                outboundChannel.writeAndFlush(httpContent);
+                                break;
+                            }
+                            if (httpContent != null) {
+                                outboundChannel.write(httpContent);
+                            }
                         }
-                        if (content != null) {
-                            ch.write(content);
+                        srcHandler.setChannelFuture(future);
+                        srcHandler.setChannel(outboundChannel);
+                    } else {
+                        // Close the connection if the connection attempt has failed.
+                        outboundChannel.close();
+                    }
+                }
+            });
+
+        } else {
+            ChannelFuture future = srcHandler.getChannelFuture();
+            if (future.isSuccess() && srcHandler.getChannel().isActive()) {
+                srcHandler.getChannel().write(httpRequest);
+                while (true) {
+                    HTTPContentChunk chunk = (HTTPContentChunk) pipe.getContent();
+                    HttpContent httpContent = chunk.getHttpContent();
+                    if (httpContent instanceof LastHttpContent) {
+                        srcHandler.getChannel().writeAndFlush(httpContent);
+                        break;
+                    }
+                    srcHandler.getChannel().write(httpContent);
+                }
+
+            } else {
+                final ChannelFuture futuretwo = bootstrap.connect(address);
+                final Channel outboundChannel = futuretwo.channel();
+                futuretwo.addListener(new ChannelFutureListener() {
+
+                    public void operationComplete(ChannelFuture future) throws Exception {
+                        if (futuretwo.isSuccess()) {
+                            outboundChannel.write(httpRequest);
+                            while (true) {
+                                HTTPContentChunk chunk = (HTTPContentChunk) pipe.getContent();
+                                HttpContent httpContent = chunk.getHttpContent();
+                                if (httpContent instanceof LastHttpContent) {
+                                    outboundChannel.writeAndFlush(httpContent);
+                                    break;
+                                }
+                                outboundChannel.write(httpContent);
+                            }
+                            srcHandler.setChannelFuture(future);
+
+                        } else {
+                            // Close the connection if the connection attempt has failed.
+                            outboundChannel.close();
                         }
                     }
-                } else {
-                    // Close the connection if the connection attempt has failed.
-                    ch.close();
-                }
+                });
             }
-        });
+        }
 
         return false;
     }
 
     public boolean sendBack(CarbonMessage msg) {
-        ChannelHandlerContext inboundCtx = (ChannelHandlerContext)
+        final ChannelHandlerContext inboundChCtx=  (ChannelHandlerContext)
                 msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
-        Pipe pipe = msg.getPipe();
-        HttpResponse response = createHttpResponse(msg);
-        inboundCtx.write(response);
+        final Channel inboundCh = inboundChCtx.channel();
+        final Pipe pipe = msg.getPipe();
+        final HttpResponse response = createHttpResponse(msg);
+
+        inboundCh.write(response);
         while (true) {
             HTTPContentChunk chunk = (HTTPContentChunk) pipe.getContent();
-            HttpContent content = chunk.getHttpContent();
-            if (content instanceof LastHttpContent) {
-                inboundCtx.writeAndFlush(content);
-                break;
+            HttpContent httpContent = chunk.getHttpContent();
+            if (httpContent != null) {
+                if (httpContent instanceof LastHttpContent ||
+                        httpContent instanceof DefaultLastHttpContent) {
+                    inboundCh.writeAndFlush(httpContent);
+                    break;
+                }
+                inboundCh.write(httpContent);
             }
-            inboundCtx.write(content);
         }
         return false;
-    }
-
-    private Bootstrap getBootstrap(CarbonMessage msg) {
-        ChannelHandlerContext ctx = (ChannelHandlerContext)
-                msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
-
-        final Channel inboundChannel = ctx.channel();
-        Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(inboundChannel.eventLoop())
-                .channel(ctx.channel().getClass())
-                .handler(new TargetInitializer(getEngine(), ctx));
-        bootstrap.option(ChannelOption.TCP_NODELAY, true);
-        bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);;
-        bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
-        bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
-
-        return bootstrap;
     }
 
     private HttpRequest createHttpRequest(CarbonMessage msg) {
@@ -156,7 +197,7 @@ public class Sender extends TransportSender {
                 HttpResponseStatus.valueOf(statusCode).reasonPhrase());
 
         DefaultHttpResponse outgoingResponse = new DefaultHttpResponse(httpVersion,
-                httpResponseStatus, true);
+                httpResponseStatus);
 
         Map<String, String> headerMap = (Map<String, String>) msg.getProperty(
                 Constants.PROTOCOL_NAME, Constants.TRANSPORT_HEADERS);

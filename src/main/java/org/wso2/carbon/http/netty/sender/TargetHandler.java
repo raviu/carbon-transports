@@ -39,9 +39,9 @@ import java.net.InetSocketAddress;
 public class TargetHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(TargetHandler.class);
 
-    private Engine engine;
-    private ChannelHandlerContext inboundChannelHandlerContext;
-    private CarbonMessage cMsg;
+    private volatile Engine engine;
+    private volatile ChannelHandlerContext inboundChannelHandlerContext;
+    private volatile CarbonMessage cMsg;
 
     public TargetHandler(Engine engine, ChannelHandlerContext inboundChannelHandlerContext) {
         this.engine = engine;
@@ -72,17 +72,16 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
             WorkerPool.submitJob(new Worker(engine, cMsg));
         } else if (msg instanceof HttpContent) {
+            HTTPContentChunk chunk;
             if (cMsg != null) {
                 if (msg instanceof LastHttpContent) {
                     LastHttpContent lastHttpContent = (LastHttpContent) msg;
-                    HTTPContentChunk chunk = new HTTPContentChunk(lastHttpContent);
-                    cMsg.getPipe().addContentChunk(chunk);
+                    chunk = new HTTPContentChunk(lastHttpContent);
                 } else {
                     DefaultHttpContent httpContent = (DefaultHttpContent) msg;
-                    HTTPContentChunk chunk = new HTTPContentChunk(httpContent);
-                    cMsg.getPipe().addContentChunk(chunk);
+                    chunk = new HTTPContentChunk(httpContent);
                 }
-
+                cMsg.getPipe().addContentChunk(chunk);
             }
         }
     }

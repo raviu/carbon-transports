@@ -20,7 +20,8 @@ package org.wso2.carbon.http.netty.listener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
 
@@ -43,7 +44,10 @@ public class SourceInitializer extends ChannelInitializer<SocketChannel> {
             log.info("Initializing source channel pipeline");
         }
         ChannelPipeline p = ch.pipeline();
-        p.addLast(HTTP_CODEC, new HttpServerCodec());
+//        p.addLast(HTTP_CODEC, new HttpServerCodec());
+        p.addLast("decoder", new HttpRequestDecoder());
+        p.addLast("encoder", new HttpResponseEncoder());
+//        p.addLast("aggegator", new HttpObjectAggregator(512 * 1024));
         p.addLast(HANDLER, new SourceHandler(engine));
     }
 

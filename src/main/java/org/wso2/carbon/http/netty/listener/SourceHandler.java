@@ -17,8 +17,12 @@
  */
 package org.wso2.carbon.http.netty.listener;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
@@ -33,21 +37,33 @@ import org.wso2.carbon.http.netty.common.Pipe;
 import org.wso2.carbon.http.netty.common.Util;
 import org.wso2.carbon.http.netty.common.Worker;
 import org.wso2.carbon.http.netty.common.WorkerPool;
+import org.wso2.carbon.http.netty.sender.TargetInitializer;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 
 public class SourceHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(SourceHandler.class);
 
-    private Engine engine;
-    private CarbonMessage cMsg;
-    private List<CarbonMessage> requestList = new ArrayList<CarbonMessage>();
-
+    private volatile Engine engine;
+    private volatile CarbonMessage cMsg;
+    private volatile Bootstrap bootstrap;
+    private volatile ChannelFuture channelFuture;
+    private volatile Channel channel;
 
     public SourceHandler(Engine engine) {
         this.engine = engine;
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        bootstrap = new Bootstrap();
+        bootstrap.group(ctx.channel().eventLoop())
+                .channel(ctx.channel().getClass())
+                .handler(new TargetInitializer(engine, ctx));
+        bootstrap.option(ChannelOption.TCP_NODELAY, true);
+        bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
+        bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
+        bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
     }
 
     @Override
@@ -65,9 +81,10 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             cMsg.setProperty(Constants.PROTOCOL_NAME,
                     Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));
             cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX, ctx);
+            cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.SRC_HNDLR, this);
 
             cMsg.setPipe(new Pipe(Constants.SOURCE_PIPE));
-            requestList.add(cMsg);
+
             WorkerPool.submitJob(new Worker(engine, cMsg));
         } else if (msg instanceof HttpContent) {
             HTTPContentChunk chunk;
@@ -80,13 +97,37 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
                                 addTrailingHeader(val, trailingHeaders.get(val));
                     }
                     chunk =  new HTTPContentChunk(lastHttpContent);
-                    cMsg.getPipe().addContentChunk(chunk);
                 } else {
                     HttpContent httpContent = (HttpContent) msg;
                     chunk = new HTTPContentChunk(httpContent);
-                    cMsg.getPipe().addContentChunk(chunk);
                 }
+                cMsg.getPipe().addContentChunk(chunk);
             }
         }
     }
+
+    public Bootstrap getBootstrap() {
+        return bootstrap;
+    }
+
+    public void setBootstrap(Bootstrap bootstrap) {
+        this.bootstrap = bootstrap;
+    }
+
+    public ChannelFuture getChannelFuture() {
+        return channelFuture;
+    }
+
+    public void setChannelFuture(ChannelFuture channelFuture) {
+        this.channelFuture = channelFuture;
+    }
+
+    public Channel getChannel() {
+        return channel;
+    }
+
+    public void setChannel(Channel channel) {
+        this.channel = channel;
+    }
+
 }

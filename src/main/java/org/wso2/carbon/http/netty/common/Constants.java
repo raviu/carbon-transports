@@ -34,5 +34,6 @@ public class Constants {
 
     public static final String CHNL_HNDLR_CTX = "CHNL_HNDLR_CTX";
 
-    public static final String REQUEST = "REQUEST";
+    public static final String SRC_HNDLR = "SRC_HNDLR";
+
 }

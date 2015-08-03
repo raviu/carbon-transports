@@ -25,9 +25,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
-import org.wso2.carbon.controller.POCController;
 
-public class Listener extends org.wso2.carbon.CarbonTransport {
+public class Listener {
     private static Logger log = Logger.getLogger(Listener.class);
 
     private static String ID = "HTTP-netty";
@@ -37,22 +36,19 @@ public class Listener extends org.wso2.carbon.CarbonTransport {
     private Engine engine;
 
     private EventLoopGroup bossGroup =
-            new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
-                    "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
+            new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
     private EventLoopGroup workerGroup =
-            new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
-                    "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));
+            new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
 
     public Listener(int port, Engine engine) {
-        super(ID);
         this.port = port;
         this.engine = engine;
     }
 
-    @Override
     public void start() {
         listenerThread = new Thread(new Runnable() {
             public void run() {
+
                 try {
                     ServerBootstrap b = new ServerBootstrap();
                     b.option(ChannelOption.SO_BACKLOG, 10);
@@ -84,25 +80,15 @@ public class Listener extends org.wso2.carbon.CarbonTransport {
         );
         listenerThread.start();
         log.info("Listener started on port " + port);
-        super.start();
     }
 
-    @Override
     public void stop() {
-
-        super.stop();
     }
 
-    @Override
     public void beginMaintenance() {
-
-        super.beginMaintenance();
     }
 
-    @Override
     public void endMaintenance() {
-
-        super.endMaintenance();
     }
 
 }

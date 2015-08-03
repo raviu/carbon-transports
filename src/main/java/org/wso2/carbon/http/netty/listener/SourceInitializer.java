@@ -24,12 +24,14 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
+
+import java.util.List;
 
 public class SourceInitializer extends ChannelInitializer<SocketChannel> {
 
     private static final Logger log = Logger.getLogger(SourceInitializer.class);
 
-    protected static final String HTTP_CODEC = "httpcodec";
     protected static final String HANDLER = "handler";
 
     private Engine engine;
@@ -44,10 +46,8 @@ public class SourceInitializer extends ChannelInitializer<SocketChannel> {
             log.info("Initializing source channel pipeline");
         }
         ChannelPipeline p = ch.pipeline();
-//        p.addLast(HTTP_CODEC, new HttpServerCodec());
         p.addLast("decoder", new HttpRequestDecoder());
         p.addLast("encoder", new HttpResponseEncoder());
-//        p.addLast("aggegator", new HttpObjectAggregator(512 * 1024));
         p.addLast(HANDLER, new SourceHandler(engine));
     }
 

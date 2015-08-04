@@ -18,8 +18,6 @@
  */
 package org.wso2.carbon.http.netty.internal;
 
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelInitializer;
 import org.wso2.carbon.http.netty.listener.CarbonNettyChannelInitializer;
 
 import java.util.ArrayList;
@@ -32,7 +30,7 @@ import java.util.List;
 public class NettyTransportDataHolder {
 
     private static NettyTransportDataHolder instance = new NettyTransportDataHolder();
-    private List<ChannelInitializer> channelHandlers = new ArrayList<ChannelInitializer>();
+    private List<CarbonNettyChannelInitializer> channelInitializers = new ArrayList<>();
 
     private NettyTransportDataHolder(){
 
@@ -42,15 +40,15 @@ public class NettyTransportDataHolder {
         return instance;
     }
 
-    public void addChannelInitializer(ChannelInitializer initializer) {
-        channelHandlers.add(initializer);
+    public void addNettyChannelInitializer(CarbonNettyChannelInitializer initializer) {
+        channelInitializers.add(initializer);
     }
 
-    public List<ChannelInitializer> getChannelInitializer() {
-        return Collections.unmodifiableList(channelHandlers);
+    public List<CarbonNettyChannelInitializer> getNettyChannelInitializer() {
+        return Collections.unmodifiableList(channelInitializers);
     }
 
-    public void removeChannelInitializer(ChannelInitializer initializer) {
-        channelHandlers.remove(initializer);
+    public void removeNettyChannelInitializer(CarbonNettyChannelInitializer initializer) {
+        channelInitializers.remove(initializer);
     }
 }

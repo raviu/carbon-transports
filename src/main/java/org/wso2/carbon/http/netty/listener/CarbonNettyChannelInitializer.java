@@ -18,13 +18,11 @@
  */
 package org.wso2.carbon.http.netty.listener;
 
-import io.netty.channel.ChannelHandler;
-
-import java.util.List;
+import io.netty.channel.socket.SocketChannel;
 
 /**
  * TODO: class level comment
  */
 public interface CarbonNettyChannelInitializer {
-    List<ChannelHandler> getHandlers(String pipelineId);
+    void initChannel(SocketChannel socketChannel);
 }

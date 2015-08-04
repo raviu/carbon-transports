@@ -19,10 +19,8 @@ package org.wso2.carbon.http.netty.listener;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -40,16 +38,13 @@ public class Listener {
     private int port;
     private Thread listenerThread;
 
-    private Engine engine;
-
     private EventLoopGroup bossGroup =
             new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
     private EventLoopGroup workerGroup =
             new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
 
-    public Listener(int port, Engine engine) {
+    public Listener(int port) {
         this.port = port;
-        this.engine = engine;
     }
 
     public void start(final Map<String, ChannelInitializer> defaultInitializers) {
@@ -91,11 +86,12 @@ public class Listener {
 
     private void addChannelInitializers(ServerBootstrap b,
                                              Map<String, ChannelInitializer> defaultInitializers) {
-        List<ChannelInitializer> channelInitializers
-                = NettyTransportDataHolder.getInstance().getChannelInitializer();
+        List<CarbonNettyChannelInitializer> channelInitializers
+                = NettyTransportDataHolder.getInstance().getNettyChannelInitializer();
         if (!channelInitializers.isEmpty()) {
-            for (ChannelInitializer i : channelInitializers) {
-                b.childHandler(i);
+            for (CarbonNettyChannelInitializer cnInitializer : channelInitializers) {
+                ChannelInitializer ci = (ChannelInitializer) cnInitializer;
+                b.childHandler(ci);
             }
         } else {
             for (Map.Entry<String, ChannelInitializer> e : defaultInitializers.entrySet()) {

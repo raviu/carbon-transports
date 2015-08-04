@@ -49,16 +49,16 @@ public class NettyTransportServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "removeNettyChannelInitializer"
     )
-    protected void addNettyChannelInitializer(ChannelInitializer initializer) {
+    protected void addNettyChannelInitializer(CarbonNettyChannelInitializer initializer) {
         try {
-            dataHolder.addChannelInitializer(initializer);
+            dataHolder.addNettyChannelInitializer(initializer);
         } catch (Throwable e) {
             e.printStackTrace();
         }
     }
 
     @SuppressWarnings("unused")
-    protected void removeNettyChannelInitializer(ChannelInitializer initializer) {
-        dataHolder.removeChannelInitializer(initializer);
+    protected void removeNettyChannelInitializer(CarbonNettyChannelInitializer initializer) {
+        dataHolder.removeNettyChannelInitializer(initializer);
     }
 }

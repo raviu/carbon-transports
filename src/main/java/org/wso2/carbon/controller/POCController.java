@@ -17,23 +17,15 @@
  */
 package org.wso2.carbon.controller;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.http.netty.listener.Listener;
-import org.wso2.carbon.http.netty.listener.SourceHandler;
 import org.wso2.carbon.http.netty.listener.SourceInitializer;
 import org.wso2.carbon.http.netty.sender.Sender;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -63,7 +55,7 @@ public class POCController {
             Map<String, ChannelInitializer> channelInitializers = new LinkedHashMap<>();
             channelInitializers.put("SourceInitializer", new SourceInitializer(engine));
 
-            Listener listener = new Listener(Integer.valueOf(props.getProperty("port", "9090")), engine);
+            Listener listener = new Listener(Integer.valueOf(props.getProperty("port", "9090")));
             listener.start(channelInitializers);
         } else {
             showUsage();

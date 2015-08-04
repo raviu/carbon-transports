@@ -29,8 +29,6 @@ public class SourceInitializer extends ChannelInitializer<SocketChannel> {
 
     private static final Logger log = Logger.getLogger(SourceInitializer.class);
 
-    protected static final String HANDLER = "handler";
-
     private Engine engine;
 
     public SourceInitializer(Engine engine) {
@@ -45,7 +43,7 @@ public class SourceInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline p = ch.pipeline();
         p.addLast("decoder", new HttpRequestDecoder());
         p.addLast("encoder", new HttpResponseEncoder());
-        p.addLast(HANDLER, new SourceHandler(engine));
+        p.addLast("handler", new SourceHandler(engine));
     }
 
 }

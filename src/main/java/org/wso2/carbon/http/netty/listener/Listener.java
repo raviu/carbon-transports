@@ -19,12 +19,19 @@ package org.wso2.carbon.http.netty.listener;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
+
+import java.util.List;
+import java.util.Map;
 
 public class Listener {
     private static Logger log = Logger.getLogger(Listener.class);
@@ -45,7 +52,7 @@ public class Listener {
         this.engine = engine;
     }
 
-    public void start() {
+    public void start(final Map<String, ChannelInitializer> defaultInitializers) {
         listenerThread = new Thread(new Runnable() {
             public void run() {
 
@@ -53,8 +60,8 @@ public class Listener {
                     ServerBootstrap b = new ServerBootstrap();
                     b.option(ChannelOption.SO_BACKLOG, 10);
                     b.group(bossGroup, workerGroup)
-                            .channel(NioServerSocketChannel.class)
-                            .childHandler(new SourceInitializer(engine));
+                            .channel(NioServerSocketChannel.class);
+                    addChannelInitializers(b, defaultInitializers);
                     b.childOption(ChannelOption.TCP_NODELAY, true);
                     b.option(ChannelOption.SO_KEEPALIVE, true);
                     b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
@@ -80,6 +87,21 @@ public class Listener {
         );
         listenerThread.start();
         log.info("Listener started on port " + port);
+    }
+
+    private void addChannelInitializers(ServerBootstrap b,
+                                             Map<String, ChannelInitializer> defaultInitializers) {
+        List<ChannelInitializer> channelInitializers
+                = NettyTransportDataHolder.getInstance().getChannelInitializer();
+        if (!channelInitializers.isEmpty()) {
+            for (ChannelInitializer i : channelInitializers) {
+                b.childHandler(i);
+            }
+        } else {
+            for (Map.Entry<String, ChannelInitializer> e : defaultInitializers.entrySet()) {
+                b.childHandler(e.getValue());
+            }
+        }
     }
 
     public void stop() {

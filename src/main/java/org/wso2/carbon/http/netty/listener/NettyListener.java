@@ -26,15 +26,15 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
+import org.wso2.carbon.transports.CarbonTransport;
 
 import java.util.List;
-import java.util.Map;
 
-public class Listener {
-    private static Logger log = Logger.getLogger(Listener.class);
+public class NettyListener extends CarbonTransport {
+    private static Logger log = Logger.getLogger(NettyListener.class);
 
-    private static String ID = "HTTP-netty";
     private int port;
+    private List<ChannelInitializer> defaultChannelInitializers;
     private Thread listenerThread;
 
     private EventLoopGroup bossGroup =
@@ -42,11 +42,13 @@ public class Listener {
     private EventLoopGroup workerGroup =
             new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
 
-    public Listener(int port) {
+    public NettyListener(String id, int port, List<ChannelInitializer> channelInitializers) {
+        super(id);
         this.port = port;
+        this.defaultChannelInitializers = channelInitializers;
     }
 
-    public void start(final Map<String, ChannelInitializer> defaultInitializers) {
+    public void start() {
         listenerThread = new Thread(new Runnable() {
             public void run() {
 
@@ -55,7 +57,7 @@ public class Listener {
                     b.option(ChannelOption.SO_BACKLOG, 10);
                     b.group(bossGroup, workerGroup)
                             .channel(NioServerSocketChannel.class);
-                    addChannelInitializers(b, defaultInitializers);
+                    addChannelInitializers(b, defaultChannelInitializers);
                     b.childOption(ChannelOption.TCP_NODELAY, true);
                     b.option(ChannelOption.SO_KEEPALIVE, true);
                     b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
@@ -83,29 +85,30 @@ public class Listener {
         log.info("Listener started on port " + port);
     }
 
-    private void addChannelInitializers(ServerBootstrap b,
-                                             Map<String, ChannelInitializer> defaultInitializers) {
-        List<CarbonNettyChannelInitializer> channelInitializers
-                = NettyTransportDataHolder.getInstance().getNettyChannelInitializer();
+    private void addChannelInitializers(ServerBootstrap bootstrap,
+                                        List<ChannelInitializer> defaultInitializers) {
+        List<ChannelInitializer> channelInitializers
+                = NettyTransportDataHolder.getInstance().getChannelInitializers(id);
         if (!channelInitializers.isEmpty()) {
-            for (CarbonNettyChannelInitializer cnInitializer : channelInitializers) {
-                ChannelInitializer ci = (ChannelInitializer) cnInitializer;
-                b.childHandler(ci);
+            for (ChannelInitializer channelInitializer : channelInitializers) {
+                bootstrap.childHandler(channelInitializer);
             }
         } else {
-            for (Map.Entry<String, ChannelInitializer> e : defaultInitializers.entrySet()) {
-                b.childHandler(e.getValue());
+            for (ChannelInitializer channelInitializer : defaultInitializers) {
+                bootstrap.childHandler(channelInitializer);
             }
         }
     }
 
     public void stop() {
+        //TODO: implement
     }
 
     public void beginMaintenance() {
+        //TODO: implement
     }
 
     public void endMaintenance() {
+        //TODO: implement
     }
-
 }

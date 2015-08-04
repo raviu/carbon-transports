@@ -20,12 +20,9 @@ package org.wso2.carbon.http.netty.internal;
 
 import io.netty.channel.ChannelInitializer;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.http.netty.listener.CarbonNettyChannelInitializer;
+import org.osgi.service.component.annotations.*;
+
+import java.util.Map;
 
 @Component(
         name = "org.wso2.carbon.http.netty.internal.NettyTransportServiceComponent",
@@ -34,8 +31,10 @@ import org.wso2.carbon.http.netty.listener.CarbonNettyChannelInitializer;
 @SuppressWarnings("unused")
 public class NettyTransportServiceComponent {
 
+    private static final String CHANNEL_ID_KEY = "channel.id";
+
     private BundleContext bundleContext;
-    NettyTransportDataHolder dataHolder = NettyTransportDataHolder.getInstance();
+    private NettyTransportDataHolder dataHolder = NettyTransportDataHolder.getInstance();
 
     @Activate
     protected void start(BundleContext bundleContext) {
@@ -44,21 +43,27 @@ public class NettyTransportServiceComponent {
 
     @Reference(
             name = "netty-channel.initializer",
-            service = CarbonNettyChannelInitializer.class,
+            service = ChannelInitializer.class,
             cardinality = ReferenceCardinality.AT_LEAST_ONE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "removeNettyChannelInitializer"
     )
-    protected void addNettyChannelInitializer(CarbonNettyChannelInitializer initializer) {
+    protected void addNettyChannelInitializer(ChannelInitializer initializer, Map<String, ?> properties) {
         try {
-            dataHolder.addNettyChannelInitializer(initializer);
+            String channelId = (String) properties.get(CHANNEL_ID_KEY);
+            if(channelId != null) {
+                dataHolder.addNettyChannelInitializer(channelId, initializer);
+            } else {
+                throw new IllegalArgumentException(CHANNEL_ID_KEY + " not specified for ChannelInitializer " + initializer);
+            }
         } catch (Throwable e) {
-            e.printStackTrace();
+            e.printStackTrace();  //TODO: log
         }
     }
 
     @SuppressWarnings("unused")
-    protected void removeNettyChannelInitializer(CarbonNettyChannelInitializer initializer) {
-        dataHolder.removeNettyChannelInitializer(initializer);
+    protected void removeNettyChannelInitializer(ChannelInitializer initializer, Map<String, ?> properties) {
+        String channelId = (String) properties.get(CHANNEL_ID_KEY);
+        dataHolder.removeNettyChannelInitializer(channelId, initializer);
     }
 }

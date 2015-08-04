@@ -15,9 +15,9 @@ public class WorkerPool {
 
 
     private WorkerPool() {
-        log.info("Executor Worker count: " + POCController.props.getProperty("workers", "100"));
+        log.info("### Executor Worker count: " + POCController.props.getProperty("workers", "300"));
         executorService = Executors.newFixedThreadPool(Integer.valueOf(
-                POCController.props.getProperty("workers", "100")));
+                POCController.props.getProperty("workers", "300")));
     }
 
     public static WorkerPool getInstance() {

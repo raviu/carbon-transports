@@ -25,6 +25,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.controller.POCController;
 import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
 
 import java.util.List;
@@ -38,15 +39,22 @@ public class Listener {
     private Thread listenerThread;
 
     private EventLoopGroup bossGroup =
-            new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
+            new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
+                    "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
     private EventLoopGroup workerGroup =
-            new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
+            new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
+                    "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors() * 2))));
 
     public Listener(int port) {
         this.port = port;
     }
 
     public void start(final Map<String, ChannelInitializer> defaultInitializers) {
+        log.info("### Netty Boss Count: " + Integer.valueOf(POCController.props.getProperty(
+                "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
+        log.info("### Netty Worker Count: " + Integer.valueOf(POCController.props.getProperty(
+                "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));
+
         listenerThread = new Thread(new Runnable() {
             public void run() {
 

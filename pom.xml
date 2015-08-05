@@ -148,7 +148,7 @@
     </build>
 
     <properties>
-	<netty.version>4.0.30.Final</netty.version>    
+	<netty.version>4.0.30.Final</netty.version>
 	<equinox.osgi.version>3.9.1.v20130814-1242</equinox.osgi.version>
         <equinox.osgi.services.version>3.3.100.v20130513-1956</equinox.osgi.services.version>
         <org.wso2.carbon.core.version>5.0.0-SNAPSHOT</org.wso2.carbon.core.version>

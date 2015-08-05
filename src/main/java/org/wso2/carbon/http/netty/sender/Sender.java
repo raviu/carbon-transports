@@ -147,23 +147,22 @@ public class Sender extends TransportSender {
     }
 
     public boolean sendBack(CarbonMessage msg) {
-        final ChannelHandlerContext inboundChCtx=  (ChannelHandlerContext)
+        final ChannelHandlerContext inboundChCtx = (ChannelHandlerContext)
                 msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
-        final Channel inboundCh = inboundChCtx.channel();
         final Pipe pipe = msg.getPipe();
         final HttpResponse response = createHttpResponse(msg);
 
-        inboundCh.write(response);
+        inboundChCtx.write(response);
         while (true) {
             HTTPContentChunk chunk = (HTTPContentChunk) pipe.getContent();
             HttpContent httpContent = chunk.getHttpContent();
             if (httpContent != null) {
                 if (httpContent instanceof LastHttpContent ||
                         httpContent instanceof DefaultLastHttpContent) {
-                    inboundCh.writeAndFlush(httpContent);
+                    inboundChCtx.writeAndFlush(httpContent);
                     break;
                 }
-                inboundCh.write(httpContent);
+                inboundChCtx.write(httpContent);
             }
         }
         return false;

@@ -86,4 +86,9 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        log.debug("Target channel closed.");
+    }
+
 }

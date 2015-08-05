@@ -62,7 +62,7 @@ public class NettyListener extends CarbonTransport {
 
                 try {
                     ServerBootstrap b = new ServerBootstrap();
-                    b.option(ChannelOption.SO_BACKLOG, 10);
+                    b.option(ChannelOption.SO_BACKLOG, 100);
                     b.group(bossGroup, workerGroup)
                             .channel(NioServerSocketChannel.class);
                     addChannelInitializers(b, defaultInitializers);
@@ -91,7 +91,7 @@ public class NettyListener extends CarbonTransport {
         );
         listenerThread.start();
         log.info("Listener started on port " + port);
-	super.start();
+	    super.start();
     }
 
     private void addChannelInitializers(ServerBootstrap bootstrap,

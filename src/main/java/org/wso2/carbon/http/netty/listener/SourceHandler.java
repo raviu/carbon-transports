@@ -106,6 +106,11 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        log.debug("Source channel closed.");
+    }
+
     public Bootstrap getBootstrap() {
         return bootstrap;
     }

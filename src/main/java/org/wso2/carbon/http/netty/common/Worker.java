@@ -36,9 +36,9 @@ public class Worker implements Runnable {
 
     public void run() {
         Thread.currentThread().setName("WorkerThread");
-        if (msg.getDirection() == CarbonMessage.IN) {
-            msg.setId(UUID.randomUUID());
-        }
+//        if (msg.getDirection() == CarbonMessage.IN) {
+//            msg.setId(UUID.randomUUID());
+//        }
 
         engine.receive(msg);
     }

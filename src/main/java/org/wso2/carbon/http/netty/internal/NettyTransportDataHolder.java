@@ -18,11 +18,12 @@
  */
 package org.wso2.carbon.http.netty.internal;
 
-import org.wso2.carbon.http.netty.listener.CarbonNettyChannelInitializer;
+import io.netty.channel.ChannelInitializer;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * TODO: class level comment
@@ -30,7 +31,7 @@ import java.util.List;
 public class NettyTransportDataHolder {
 
     private static NettyTransportDataHolder instance = new NettyTransportDataHolder();
-    private List<CarbonNettyChannelInitializer> channelInitializers = new ArrayList<>();
+    private Map<String, List<ChannelInitializer>> channelInitializers = new HashMap<>();
 
     private NettyTransportDataHolder(){
 
@@ -40,15 +41,27 @@ public class NettyTransportDataHolder {
         return instance;
     }
 
-    public void addNettyChannelInitializer(CarbonNettyChannelInitializer initializer) {
-        channelInitializers.add(initializer);
+    public synchronized void addNettyChannelInitializer(String key, ChannelInitializer initializer) {
+        List<ChannelInitializer> chInitializers = this.channelInitializers.get(key);
+        if (chInitializers == null) {
+            chInitializers = new ArrayList<>();
+            this.channelInitializers.put(key, chInitializers);
+        }
+        chInitializers.add(initializer);
     }
 
-    public List<CarbonNettyChannelInitializer> getNettyChannelInitializer() {
-        return Collections.unmodifiableList(channelInitializers);
+    public List<ChannelInitializer> getChannelInitializers(String key) {
+        List<ChannelInitializer> chInitializers = channelInitializers.get(key);
+        return chInitializers == null ? new ArrayList<ChannelInitializer>() : chInitializers;
     }
 
-    public void removeNettyChannelInitializer(CarbonNettyChannelInitializer initializer) {
-        channelInitializers.remove(initializer);
+    public void removeNettyChannelInitializer(String key, ChannelInitializer channelInitializer) {
+        List<ChannelInitializer> chInitializers = channelInitializers.get(key);
+        if (chInitializers != null) {
+            chInitializers.remove(channelInitializer);
+            if (chInitializers.isEmpty()) {
+               channelInitializers.remove(key);
+            }
+        }
     }
 }

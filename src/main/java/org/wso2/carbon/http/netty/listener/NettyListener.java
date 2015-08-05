@@ -31,10 +31,10 @@ import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
 import java.util.List;
 import java.util.Map;
 
-public class Listener {
-    private static Logger log = Logger.getLogger(Listener.class);
+public class NettyListener {
+    private static Logger log = Logger.getLogger(NettyListener.class);
 
-    private static String ID = "HTTP-netty";
+    private static String id = "HTTP-netty";
     private int port;
     private Thread listenerThread;
 
@@ -45,7 +45,8 @@ public class Listener {
             new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
                     "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors() * 2))));
 
-    public Listener(int port) {
+    public NettyListener(String id, int port) {
+//        super(id);
         this.port = port;
     }
 
@@ -91,29 +92,32 @@ public class Listener {
         log.info("Listener started on port " + port);
     }
 
-    private void addChannelInitializers(ServerBootstrap b,
-                                             Map<String, ChannelInitializer> defaultInitializers) {
-        List<CarbonNettyChannelInitializer> channelInitializers
-                = NettyTransportDataHolder.getInstance().getNettyChannelInitializer();
+    private void addChannelInitializers(ServerBootstrap bootstrap,
+                                        Map<String, ChannelInitializer> defaultInitializers) {
+        List<ChannelInitializer> channelInitializers
+                = NettyTransportDataHolder.getInstance().getChannelInitializers(id);
         if (!channelInitializers.isEmpty()) {
-            for (CarbonNettyChannelInitializer cnInitializer : channelInitializers) {
-                ChannelInitializer ci = (ChannelInitializer) cnInitializer;
-                b.childHandler(ci);
+            for (ChannelInitializer channelInitializer : channelInitializers) {
+                bootstrap.childHandler(channelInitializer);
             }
         } else {
-            for (Map.Entry<String, ChannelInitializer> e : defaultInitializers.entrySet()) {
-                b.childHandler(e.getValue());
+            for (Map.Entry<String, ChannelInitializer> channelInitializer :
+                    defaultInitializers.entrySet()) {
+                bootstrap.childHandler(channelInitializer.getValue());
             }
         }
     }
 
     public void stop() {
+        //TODO: implement
     }
 
     public void beginMaintenance() {
+        //TODO: implement
     }
 
     public void endMaintenance() {
+        //TODO: implement
     }
 
 }

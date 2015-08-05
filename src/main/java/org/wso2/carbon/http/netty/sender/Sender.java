@@ -177,7 +177,8 @@ public class Sender extends TransportSender {
         HttpVersion httpVersion = new HttpVersion((String) msg.getProperty(Constants.PROTOCOL_NAME,
                 Constants.HTTP_VERSION), true);
 
-        HttpRequest outgoingRequest = new DefaultHttpRequest(httpVersion, httpMethod, msg.getURI());
+        HttpRequest outgoingRequest =
+                new DefaultHttpRequest(httpVersion, httpMethod, msg.getURI(), false);
 
         Map headers = (Map) msg.getProperty(Constants.PROTOCOL_NAME,
                 Constants.TRANSPORT_HEADERS);
@@ -197,7 +198,7 @@ public class Sender extends TransportSender {
                 HttpResponseStatus.valueOf(statusCode).reasonPhrase());
 
         DefaultHttpResponse outgoingResponse = new DefaultHttpResponse(httpVersion,
-                httpResponseStatus);
+                httpResponseStatus, false);
 
         Map<String, String> headerMap = (Map<String, String>) msg.getProperty(
                 Constants.PROTOCOL_NAME, Constants.TRANSPORT_HEADERS);

@@ -27,11 +27,12 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.controller.POCController;
 import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
+import org.wso2.carbon.CarbonTransport;
 
 import java.util.List;
 import java.util.Map;
 
-public class NettyListener {
+public class NettyListener extends CarbonTransport {
     private static Logger log = Logger.getLogger(NettyListener.class);
 
     private static String id = "HTTP-netty";
@@ -46,7 +47,7 @@ public class NettyListener {
                     "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors() * 2))));
 
     public NettyListener(String id, int port) {
-//        super(id);
+        super(id);
         this.port = port;
     }
 
@@ -90,6 +91,7 @@ public class NettyListener {
         );
         listenerThread.start();
         log.info("Listener started on port " + port);
+	super.start();
     }
 
     private void addChannelInitializers(ServerBootstrap bootstrap,
@@ -108,14 +110,17 @@ public class NettyListener {
         }
     }
 
+    @Override
     public void stop() {
         //TODO: implement
     }
 
+    @Override
     public void beginMaintenance() {
         //TODO: implement
     }
 
+    @Override
     public void endMaintenance() {
         //TODO: implement
     }

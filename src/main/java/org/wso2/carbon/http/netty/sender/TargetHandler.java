@@ -39,9 +39,9 @@ import java.net.InetSocketAddress;
 public class TargetHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(TargetHandler.class);
 
-    private volatile Engine engine;
-    private volatile ChannelHandlerContext inboundChannelHandlerContext;
-    private volatile CarbonMessage cMsg;
+    private Engine engine;
+    private ChannelHandlerContext inboundChannelHandlerContext;
+    private CarbonMessage cMsg;
 
     public TargetHandler(Engine engine, ChannelHandlerContext inboundChannelHandlerContext) {
         this.engine = engine;

@@ -44,11 +44,11 @@ import java.net.InetSocketAddress;
 public class SourceHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(SourceHandler.class);
 
-    private volatile Engine engine;
-    private volatile CarbonMessage cMsg;
-    private volatile Bootstrap bootstrap;
-    private volatile ChannelFuture channelFuture;
-    private volatile Channel channel;
+    private Engine engine;
+    private CarbonMessage cMsg;
+    private Bootstrap bootstrap;
+    private ChannelFuture channelFuture;
+    private Channel channel;
 
     public SourceHandler(Engine engine) {
         this.engine = engine;

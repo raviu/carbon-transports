@@ -21,7 +21,8 @@ import io.netty.channel.ChannelInitializer;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.http.netty.listener.NettyListener;
 import org.wso2.carbon.http.netty.listener.SourceInitializer;
-import org.wso2.carbon.http.netty.sender.Sender;
+import org.wso2.carbon.http.netty.sender.disruptor.Sender;
+
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,30 +37,30 @@ public class POCController {
         Sender sender = new Sender();
         Engine engine = new POCMediationEngine(sender);
 
-        if (args.length == 2) {
-            if (args[0].equals("jaxrs")) {
-                engine = new POCJaxRSEngine(sender);
-            }
-
-            File propFile = new File(args[1]);
-            try {
-                FileInputStream fis = new FileInputStream(propFile);
-                props.load(fis);
-            } catch (Exception e) {
-                showUsage();
-                e.printStackTrace();
-                System.exit(0);
-            }
-
-            Map<String, ChannelInitializer> channelInitializers = new HashMap<>();
-            channelInitializers.put("SourceInitializer", new SourceInitializer(engine));
+//        if (args.length == 2) {
+//            if (args[0].equals("jaxrs")) {
+//                engine = new POCJaxRSEngine(sender);
+//            }
+//
+//            File propFile = new File(args[1]);
+//            try {
+//                FileInputStream fis = new FileInputStream(propFile);
+//                props.load(fis);
+//            } catch (Exception e) {
+//                showUsage();
+//                e.printStackTrace();
+//                System.exit(0);
+//            }
+//
+           Map<String, ChannelInitializer> channelInitializers = new HashMap<>();
+           channelInitializers.put("SourceInitializer", new SourceInitializer(engine));
 
             NettyListener nettyListener =
                     new NettyListener(ID, Integer.valueOf(props.getProperty("port", "9090")));
             nettyListener.start(channelInitializers);
-        } else {
-            showUsage();
-        }
+//        } else {
+//            showUsage();
+//        }
     }
 
     private static void showUsage() {

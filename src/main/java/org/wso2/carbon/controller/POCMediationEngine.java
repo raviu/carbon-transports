@@ -41,10 +41,11 @@ public class POCMediationEngine implements org.wso2.carbon.api.Engine {
 
         if (msg.getDirection() == CarbonMessageImpl.IN) {
             CarbonMessage outMsg = new CarbonMessageImpl(ENGINE_PROTOCOL);
-            outMsg.setPipe(msg.getPipe());
+            outMsg.setEvent(msg.getEvent());
+            outMsg.setStatus(msg.getStatus());
             outMsg.setHost(POCController.props.getProperty("proxy_to_host", "localhost"));
-            outMsg.setPort(Integer.valueOf(POCController.props.getProperty("proxy_to_port", "8280")));
-            outMsg.setURI(POCController.props.getProperty("proxy_to_uri", "/services/echo"));
+            outMsg.setPort(Integer.valueOf(POCController.props.getProperty("proxy_to_port", "9000")));
+            outMsg.setURI(POCController.props.getProperty("proxy_to_uri", "/services/SimpleStockQuoteService"));
             outMsg.setProperties(msg.getProperties());
             outMsg.setProperty(ENGINE_PROTOCOL, "Custom-Header", "PerfTest");
             sender.send(outMsg);

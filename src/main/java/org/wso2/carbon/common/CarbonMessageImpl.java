@@ -34,6 +34,17 @@ public class CarbonMessageImpl extends CarbonMessage {
     private String to;
     private String replyTo;
     private Pipe pipe;
+    private Object event;
+    private String status;
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     private Map<String, Map<String, Object>> properties = new HashMap<String, Map<String, Object>>();
 
     public CarbonMessageImpl(String protocol) {
@@ -104,6 +115,14 @@ public class CarbonMessageImpl extends CarbonMessage {
         this.protocol = protocol;
     }
 
+
+    public void  setEvent(Object event){
+        this.event = event;
+    }
+
+    public Object getEvent(){
+        return event;
+    }
 
     public void setProperty(String protocol, String key, Object value) {
         Map<String, Object> protocolMap = properties.get(protocol);

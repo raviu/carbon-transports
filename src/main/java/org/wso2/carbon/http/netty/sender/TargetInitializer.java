@@ -25,6 +25,7 @@ import io.netty.handler.codec.http.HttpRequestEncoder;
 import io.netty.handler.codec.http.HttpResponseDecoder;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.http.netty.sender.disruptor.TargetHandler;
 
 public class TargetInitializer extends ChannelInitializer<SocketChannel> {
     private static Logger log = Logger.getLogger(TargetInitializer.class);

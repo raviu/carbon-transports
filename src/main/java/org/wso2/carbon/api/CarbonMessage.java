@@ -28,6 +28,14 @@ public abstract class CarbonMessage {
 
     abstract public void setId(UUID id);
 
+    abstract public void setStatus(String status);
+
+    abstract public void setEvent(Object msg);
+
+    abstract public Object getEvent();
+
+    abstract public String getStatus();
+
     abstract public int getDirection();
 
     abstract public void setDirection(int direction);

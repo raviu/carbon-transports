@@ -36,4 +36,13 @@ public class Constants {
 
     public static final String SRC_HNDLR = "SRC_HNDLR";
 
+    public static final String HEADERS ="Headers";
+
+    public static final String BODY = "Body";
+
+    public static final String ENGINE = "Engine";
+
+    public static final String ENGINE_POC = "Engine";
+
+
 }

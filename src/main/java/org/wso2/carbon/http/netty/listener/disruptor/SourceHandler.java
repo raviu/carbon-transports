@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.http.netty.listener.disruptor;
 
+import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -80,19 +81,18 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             cMsg.setStatus(Constants.HEADERS);
             cMsg.setEvent(msg);
             disruptor.publishEvent(new CarbonEventPublisher(cMsg));
-
-        } else if (msg instanceof HttpContent) {
+        } else {
             cMsg.setEvent(msg);
             cMsg.setStatus(Constants.BODY);
-            cMsg.setProperty(Constants.PROTOCOL_NAME,Constants.ENGINE,engine);
             disruptor.publishEvent(new CarbonEventPublisher(cMsg));
+
         }
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         log.debug("Source channel closed.");
-        disruptor.shutdown();
+       disruptor.shutdown();
     }
 
     public Bootstrap getBootstrap() {

@@ -47,7 +47,7 @@ public class Sender extends TransportSender {
         return true;
     }
 
-    public boolean send(final CarbonMessage msg) {
+    public boolean send(final CarbonMessage msg) throws InterruptedException {
         final ChannelHandlerContext inboundCtx = (ChannelHandlerContext)
                    msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
 
@@ -60,17 +60,23 @@ public class Sender extends TransportSender {
 
         if (srcHandler.getChannelFuture() == null && msg.getStatus()==Constants.HEADERS) {
             ChannelFuture future = bootstrap.connect(address);
+
             final Channel outboundChannel = future.channel();
 
             future.addListener(new ChannelFutureListener() {
 
                 public void operationComplete(ChannelFuture future) throws Exception {
                     if (future.isSuccess()) {
+                          synchronized (srcHandler) {
+                              srcHandler.setChannelFuture(future);
+                              srcHandler.setChannel(outboundChannel);
+                              srcHandler.notify();
+                          }
+
                         if (msg.getStatus() == Constants.HEADERS) {
                             final HttpRequest httpRequest = createHttpRequest(msg);
                             outboundChannel.write(httpRequest);
-                            srcHandler.setChannelFuture(future);
-                            srcHandler.setChannel(outboundChannel);
+
                         }else if(msg.getEvent() instanceof  LastHttpContent){
                             outboundChannel.writeAndFlush(msg.getEvent());
                         }else{
@@ -85,7 +91,12 @@ public class Sender extends TransportSender {
 
         } else {
             ChannelFuture future = srcHandler.getChannelFuture();
-            while(future == null){
+            if(future == null){
+                synchronized(srcHandler){
+                    if(srcHandler.getChannelFuture()==null){
+                        srcHandler.wait();
+                    }
+                }
                 future = srcHandler.getChannelFuture();
             }
             if (future.isSuccess() && srcHandler.getChannel().isActive()) {
@@ -146,6 +157,7 @@ public class Sender extends TransportSender {
 
         HttpRequest outgoingRequest =
                    new DefaultHttpRequest(httpVersion, httpMethod, msg.getURI(), false);
+
 
         Map headers = (Map) msg.getProperty(Constants.PROTOCOL_NAME,
                                             Constants.TRANSPORT_HEADERS);

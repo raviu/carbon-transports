@@ -16,9 +16,7 @@
 
 package org.wso2.carbon.disruptor;
 
-import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.ExceptionHandler;
-import com.lmax.disruptor.YieldingWaitStrategy;
+import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import org.wso2.carbon.disruptor.event.CarbonDisruptorEvent;
@@ -32,7 +30,7 @@ public class DisruptorFactory {
 
     public static Disruptor getDisruptor(int threadPoolSize) {
 
-        ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
+        ExecutorService executorService = Executors.newCachedThreadPool();
         Disruptor disruptor = new Disruptor<CarbonDisruptorEvent>(
                    CarbonDisruptorEvent.EVENT_FACTORY,
                    1024,

@@ -49,7 +49,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        disruptor = DisruptorFactory.getDisruptor(200);
+        disruptor = DisruptorFactory.getDisruptor(8);
         disruptor.start();
     }
 

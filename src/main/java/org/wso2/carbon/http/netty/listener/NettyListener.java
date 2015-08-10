@@ -55,7 +55,7 @@ public class NettyListener extends CarbonTransport {
         log.info("### Netty Boss Count: " + Integer.valueOf(POCController.props.getProperty(
                 "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
         log.info("### Netty Worker Count: " + Integer.valueOf(POCController.props.getProperty(
-                "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));
+                "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors() * 2))));
 
         listenerThread = new Thread(new Runnable() {
             public void run() {

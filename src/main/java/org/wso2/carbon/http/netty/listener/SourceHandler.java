@@ -64,6 +64,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
         bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
+        NettyListener.getListenerChannelGroup().add(ctx.channel());
     }
 
     @Override

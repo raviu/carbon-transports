@@ -25,7 +25,9 @@ import org.wso2.carbon.http.netty.sender.Sender;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class POCController {
 

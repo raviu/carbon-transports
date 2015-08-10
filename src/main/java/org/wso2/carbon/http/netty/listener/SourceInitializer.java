@@ -22,6 +22,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
 
@@ -43,6 +44,8 @@ public class SourceInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline p = ch.pipeline();
         p.addLast("decoder", new HttpRequestDecoder());
         p.addLast("encoder", new HttpResponseEncoder());
+        //TODO Test adding event executor group as below
+//        p.addLast(new DefaultEventExecutorGroup(10), "handler", new SourceHandler(engine));
         p.addLast("handler", new SourceHandler(engine));
     }
 

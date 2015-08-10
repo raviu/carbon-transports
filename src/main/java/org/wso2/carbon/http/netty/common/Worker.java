@@ -21,8 +21,6 @@ import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
 
-import java.util.UUID;
-
 public class Worker implements Runnable {
     private static Logger log = Logger.getLogger(Worker.class);
 

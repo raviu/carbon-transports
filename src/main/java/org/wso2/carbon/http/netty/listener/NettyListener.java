@@ -22,12 +22,18 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.controller.POCController;
-import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
 import org.wso2.carbon.CarbonTransport;
+import org.wso2.carbon.controller.POCController;
+import org.wso2.carbon.http.netty.common.Constants;
+import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
 
 import java.util.List;
 import java.util.Map;
@@ -37,14 +43,17 @@ public class NettyListener extends CarbonTransport {
 
     private static String id = "HTTP-netty";
     private int port;
-    private Thread listenerThread;
+    private String SERVER_STATE = Constants.STATE_STOPPED;
+    private Map<String, ChannelInitializer> defaultInitializers;
 
+    private ServerBootstrap b;
     private EventLoopGroup bossGroup =
             new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
                     "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
     private EventLoopGroup workerGroup =
             new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
                     "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors() * 2))));
+    private static ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     public NettyListener(String id, int port) {
         super(id);
@@ -52,46 +61,46 @@ public class NettyListener extends CarbonTransport {
     }
 
     public void start(final Map<String, ChannelInitializer> defaultInitializers) {
+        super.start();
         log.info("### Netty Boss Count: " + Integer.valueOf(POCController.props.getProperty(
                 "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
         log.info("### Netty Worker Count: " + Integer.valueOf(POCController.props.getProperty(
                 "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));
 
-        listenerThread = new Thread(new Runnable() {
-            public void run() {
+        this.defaultInitializers = defaultInitializers;
+        startServer(defaultInitializers);
+    }
 
-                try {
-                    ServerBootstrap b = new ServerBootstrap();
-                    b.option(ChannelOption.SO_BACKLOG, 100);
-                    b.group(bossGroup, workerGroup)
-                            .channel(NioServerSocketChannel.class);
-                    addChannelInitializers(b, defaultInitializers);
-                    b.childOption(ChannelOption.TCP_NODELAY, true);
-                    b.option(ChannelOption.SO_KEEPALIVE, true);
-                    b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
+    private void startServer(final Map<String, ChannelInitializer> defaultInitializers) {
+        try {
+            b = new ServerBootstrap();
+            b.option(ChannelOption.SO_BACKLOG, 100);
+            b.group(bossGroup, workerGroup)
+                    .channel(NioServerSocketChannel.class);
+            addChannelInitializers(b, defaultInitializers);
+            b.childOption(ChannelOption.TCP_NODELAY, true);
+            b.option(ChannelOption.SO_KEEPALIVE, true);
+            b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
 
-                    b.option(ChannelOption.SO_SNDBUF, 1048576);
-                    b.option(ChannelOption.SO_RCVBUF, 1048576);
-                    b.childOption(ChannelOption.SO_RCVBUF, 1048576);
-                    b.childOption(ChannelOption.SO_SNDBUF, 1048576);
-                    Channel ch = null;
-                    try {
-                        ch = b.bind(port).sync().channel();
-                        ch.closeFuture().sync();
-                    } catch (InterruptedException e) {
-                        log.error(e.getMessage(), e);
-                    }
-                } finally {
-                    bossGroup.shutdownGracefully();
-                    workerGroup.shutdownGracefully();
-                }
+            b.option(ChannelOption.SO_SNDBUF, 1048576);
+            b.option(ChannelOption.SO_RCVBUF, 1048576);
+            b.childOption(ChannelOption.SO_RCVBUF, 1048576);
+            b.childOption(ChannelOption.SO_SNDBUF, 1048576);
+            Channel ch = null;
+            try {
+                ch = b.bind(port).sync().channel();
+                allChannels.add(ch);
+                SERVER_STATE = Constants.STATE_STARTED;
+                log.info("Listener starting on port " + port);
+                ch.closeFuture().sync();
+                allChannels.close().awaitUninterruptibly();
+            } catch (InterruptedException e) {
+                log.error(e.getMessage(), e);
             }
-        },
-                "Inbound Listener"
-        );
-        listenerThread.start();
-        log.info("Listener started on port " + port);
-	    super.start();
+        } finally {
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
+        }
     }
 
     private void addChannelInitializers(ServerBootstrap bootstrap,
@@ -112,17 +121,52 @@ public class NettyListener extends CarbonTransport {
 
     @Override
     public void stop() {
-        //TODO: implement
+        SERVER_STATE = Constants.STATE_TRANSITION;
+        log.info("Stopping server on port " + port);
+        shutdownEventLoops();
     }
 
     @Override
     public void beginMaintenance() {
-        //TODO: implement
+        SERVER_STATE = Constants.STATE_TRANSITION;
+        log.info("Stopping server on port " + port + " for maintenance");
+        shutdownEventLoops();
     }
 
     @Override
     public void endMaintenance() {
-        //TODO: implement
+        SERVER_STATE = Constants.STATE_TRANSITION;
+        log.info("Ending maintenance mode for server running on port " + port);
+        bossGroup = new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
+                "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
+        workerGroup = new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
+                "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));
+        startServer(defaultInitializers);
+    }
+
+    public String getState() {
+        return SERVER_STATE;
+    }
+
+    private void shutdownEventLoops() {
+        Future<?> f = workerGroup.shutdownGracefully();
+        f.addListener(new GenericFutureListener<Future<Object>>() {
+            @Override
+            public void operationComplete(Future<Object> future) throws Exception {
+                Future f = bossGroup.shutdownGracefully();
+                f.addListener(new GenericFutureListener<Future<Object>>() {
+                    @Override
+                    public void operationComplete(Future<Object> future) throws Exception {
+                        log.info("Server on port " + port + " stopped successfully");
+                        SERVER_STATE = Constants.STATE_STOPPED;
+                    }
+                });
+            }
+        });
+    }
+
+    public static ChannelGroup getListenerChannelGroup() {
+        return allChannels;
     }
 
 }

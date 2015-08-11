@@ -28,19 +28,25 @@ import java.util.concurrent.Executors;
 
 public class DisruptorFactory {
 
-    public static Disruptor getDisruptor(int threadPoolSize) {
+    private static  Disruptor disruptor;
 
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        Disruptor disruptor = new Disruptor<CarbonDisruptorEvent>(
+    public static Disruptor getDisruptor(int threadPoolSize) {
+        return disruptor;
+    }
+    public static Disruptor createDisruptor(int threadPoolSize) {
+
+        ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
+       disruptor = new Disruptor<CarbonDisruptorEvent>(
                    CarbonDisruptorEvent.EVENT_FACTORY,
                    8192,
                    executorService,
-                   ProducerType.SINGLE,
+                   ProducerType.MULTI,
                    new YieldingWaitStrategy());
         ExceptionHandler exh = new GenericExceptionHandler();
         EventHandler eventHandler = new CarbonDisruptorEventHandler();
         disruptor.handleEventsWith(eventHandler);
         disruptor.handleExceptionsFor(eventHandler).with(exh);
+        disruptor.start();
         return disruptor;
     }
 

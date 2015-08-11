@@ -73,7 +73,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             }
         });
         disruptor = DisruptorFactory.getDisruptor(20);
-        disruptor.start();
+      //  disruptor.start();
     }
 
     @Override
@@ -108,7 +108,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         log.debug("Source channel closed.");
-       disruptor.shutdown();
+    //   disruptor.shutdown();
     }
 
     public Bootstrap getBootstrap() {

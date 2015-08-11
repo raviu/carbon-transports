@@ -16,16 +16,15 @@
 
 package org.wso2.carbon.http.netty.listener.disruptor;
 
-import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
-import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.common.CarbonMessageImpl;
+import org.wso2.carbon.controller.POCController;
 import org.wso2.carbon.disruptor.DisruptorFactory;
 import org.wso2.carbon.disruptor.publisher.CarbonEventPublisher;
 import org.wso2.carbon.http.netty.common.Constants;
@@ -39,16 +38,17 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
     private Engine engine;
     private Bootstrap bootstrap;
-    private ChannelFuture channelFuture;
     private Channel channel;
     private Disruptor disruptor;
+
 
     public SourceHandler(Engine engine) {
         this.engine = engine;
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(final ChannelHandlerContext ctx) throws Exception {
+       final Channel inboundChannel =  ctx.channel();
         bootstrap = new Bootstrap();
         bootstrap.group(ctx.channel().eventLoop())
                    .channel(ctx.channel().getClass())
@@ -57,7 +57,22 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
         bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
-        disruptor = DisruptorFactory.getDisruptor(8);
+        String host = POCController.props.getProperty("proxy_to_host", "localhost");
+        int port =  Integer.valueOf(POCController.props.getProperty("proxy_to_port", "8280"));
+        InetSocketAddress address = new InetSocketAddress(host, port);
+        ChannelFuture future = bootstrap.connect(address);
+        final Channel outboundChannel = future.channel();
+        future.addListener(new ChannelFutureListener() {
+            public void operationComplete(ChannelFuture future) throws Exception {
+                if (future.isSuccess()) {
+                    channel= outboundChannel;
+                    ctx.read();
+                } else {
+                    outboundChannel.close();
+                }
+            }
+        });
+        disruptor = DisruptorFactory.getDisruptor(20);
         disruptor.start();
     }
 
@@ -87,6 +102,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             disruptor.publishEvent(new CarbonEventPublisher(cMsg));
 
         }
+        ctx.channel().read();
     }
 
     @Override
@@ -103,14 +119,6 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         this.bootstrap = bootstrap;
     }
 
-    public ChannelFuture getChannelFuture() {
-        return channelFuture;
-    }
-
-    public void setChannelFuture(ChannelFuture channelFuture) {
-        this.channelFuture = channelFuture;
-    }
-
     public Channel getChannel() {
         return channel;
     }
@@ -118,4 +126,5 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     public void setChannel(Channel channel) {
         this.channel = channel;
     }
+
 }

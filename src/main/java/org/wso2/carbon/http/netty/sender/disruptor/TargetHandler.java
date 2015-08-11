@@ -20,17 +20,15 @@ package org.wso2.carbon.http.netty.sender.disruptor;
 import com.lmax.disruptor.dsl.Disruptor;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.DefaultHttpContent;
-import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.disruptor.DisruptorFactory;
 import org.wso2.carbon.disruptor.publisher.CarbonEventPublisher;
-import org.wso2.carbon.http.netty.common.*;
+import org.wso2.carbon.http.netty.common.Constants;
+import org.wso2.carbon.http.netty.common.Util;
 
 import java.net.InetSocketAddress;
 
@@ -49,7 +47,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        disruptor = DisruptorFactory.getDisruptor(8);
+        disruptor = DisruptorFactory.getDisruptor(20);
         disruptor.start();
     }
 

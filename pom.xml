@@ -159,7 +159,7 @@
         <org.wso2.carbon.core.version>5.0.0-SNAPSHOT</org.wso2.carbon.core.version>
         <osgi.framework.import.version.range>[1.7.0, 1.8.0)</osgi.framework.import.version.range>
         <osgi.service.tracker.import.version.range>[1.5.1, 1.6.0)</osgi.service.tracker.import.version.range>
-        <lmax.disruptor.version>3.2.0</lmax.disruptor.version>
+        <lmax.disruptor.version>3.2.1</lmax.disruptor.version>
     </properties>
 
 </project>

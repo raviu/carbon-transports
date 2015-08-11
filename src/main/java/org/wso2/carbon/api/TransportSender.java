@@ -40,7 +40,7 @@ public abstract class TransportSender {
 
     public abstract boolean init();
 
-    public abstract boolean send(CarbonMessage msg) throws InterruptedException;
+    public abstract boolean send(CarbonMessage msg);
 
     public abstract boolean sendBack(CarbonMessage msg);
 }

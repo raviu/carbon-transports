@@ -17,10 +17,6 @@
 package org.wso2.carbon.http.netty.sender.disruptor;
 
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import org.apache.log4j.Logger;
@@ -30,14 +26,16 @@ import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Util;
 import org.wso2.carbon.http.netty.listener.disruptor.SourceHandler;
 
-
-import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class Sender extends TransportSender {
     private static Logger log = Logger.getLogger(Sender.class);
+
+    private List<CarbonMessage> carbonMessageQueue = new ArrayList<CarbonMessage>();
 
     public Sender() {
         super(Constants.PROTOCOL_NAME);
@@ -47,93 +45,24 @@ public class Sender extends TransportSender {
         return true;
     }
 
-    public boolean send(final CarbonMessage msg) throws InterruptedException {
-        final ChannelHandlerContext inboundCtx = (ChannelHandlerContext)
-                   msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
 
-        final SourceHandler srcHandler = (SourceHandler) msg.getProperty(
+
+    public boolean send(final CarbonMessage msg)  {
+        SourceHandler srcHandler = (SourceHandler) msg.getProperty(
                    Constants.PROTOCOL_NAME, Constants.SRC_HNDLR);
+        if(msg.getStatus()==Constants.HEADERS){
+            HttpRequest httpRequest = createHttpRequest(msg);
+            srcHandler.getChannel().write(httpRequest);
 
-        Bootstrap bootstrap = srcHandler.getBootstrap();
+        }else if(msg.getStatus() == Constants.BODY && msg.getEvent() instanceof  LastHttpContent) {
+            srcHandler.getChannel().writeAndFlush(msg.getEvent());
 
-        InetSocketAddress address = new InetSocketAddress(msg.getHost(), msg.getPort());
-
-        if (srcHandler.getChannelFuture() == null && msg.getStatus()==Constants.HEADERS) {
-            ChannelFuture future = bootstrap.connect(address);
-
-            final Channel outboundChannel = future.channel();
-
-            future.addListener(new ChannelFutureListener() {
-
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    if (future.isSuccess()) {
-                          synchronized (srcHandler) {
-                              srcHandler.setChannelFuture(future);
-                              srcHandler.setChannel(outboundChannel);
-                              srcHandler.notify();
-                          }
-
-                        if (msg.getStatus() == Constants.HEADERS) {
-                            final HttpRequest httpRequest = createHttpRequest(msg);
-                            outboundChannel.write(httpRequest);
-
-                        }else if(msg.getEvent() instanceof  LastHttpContent){
-                            outboundChannel.writeAndFlush(msg.getEvent());
-                        }else{
-                            outboundChannel.write(msg.getEvent());
-                        }
-                    } else {
-                        // Close the connection if the connection attempt has failed.
-                        outboundChannel.close();
-                    }
-                }
-            });
-
-        } else {
-            ChannelFuture future = srcHandler.getChannelFuture();
-            if(future == null){
-                synchronized(srcHandler){
-                    if(srcHandler.getChannelFuture()==null){
-                        srcHandler.wait();
-                    }
-                }
-                future = srcHandler.getChannelFuture();
-            }
-            if (future.isSuccess() && srcHandler.getChannel().isActive()) {
-                if (msg.getStatus() == Constants.HEADERS) {
-                    final HttpRequest httpRequest = createHttpRequest(msg);
-                    srcHandler.getChannel().write(httpRequest);
-                } else if (msg.getEvent() instanceof LastHttpContent) {
-                    srcHandler.getChannel().writeAndFlush(msg.getEvent());
-                } else {
-                    srcHandler.getChannel().write(msg.getEvent());
-                }
-            }else {
-                final ChannelFuture futuretwo = bootstrap.connect(address);
-                final Channel outboundChannel = futuretwo.channel();
-                futuretwo.addListener(new ChannelFutureListener() {
-                    public void operationComplete(ChannelFuture future) throws Exception {
-                        if (futuretwo.isSuccess()) {
-                            if (msg.getStatus() == Constants.HEADERS) {
-                                final HttpRequest httpRequest = createHttpRequest(msg);
-                                outboundChannel.write(httpRequest);
-                                srcHandler.setChannelFuture(future);
-                            }else if(msg.getEvent() instanceof  LastHttpContent){
-                                outboundChannel.writeAndFlush(msg.getEvent());
-                            }else{
-                                outboundChannel.write(msg.getEvent());
-                            }
-                        } else {
-                            // Close the connection if the connection attempt has failed.
-                            outboundChannel.close();
-                        }
-                    }
-                });
-            }
+        }else if(msg.getStatus() == Constants.BODY && msg.getEvent() instanceof  HttpContent){
+            srcHandler.getChannel().write(msg.getEvent());
         }
-
         return false;
     }
+
 
     public boolean sendBack(CarbonMessage msg) {
         final ChannelHandlerContext inboundChCtx = (ChannelHandlerContext)
@@ -185,5 +114,9 @@ public class Sender extends TransportSender {
         Util.setHeaders(outgoingResponse, headerMap);
 
         return outgoingResponse;
+    }
+
+    public void addToQueue(CarbonMessage carbonMessage){
+        carbonMessageQueue.add(carbonMessage);
     }
 }

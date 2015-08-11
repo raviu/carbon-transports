@@ -48,7 +48,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
         disruptor = DisruptorFactory.getDisruptor(20);
-        disruptor.start();
+      //  disruptor.start();
     }
 
     @Override
@@ -84,7 +84,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         log.debug("Target channel closed.");
-        disruptor.shutdown();
+     //   disruptor.shutdown();
     }
 
 }

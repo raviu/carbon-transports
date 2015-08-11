@@ -19,6 +19,7 @@ package org.wso2.carbon.controller;
 
 import io.netty.channel.ChannelInitializer;
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.disruptor.DisruptorFactory;
 import org.wso2.carbon.http.netty.listener.NettyListener;
 import org.wso2.carbon.http.netty.listener.SourceInitializer;
 import org.wso2.carbon.http.netty.sender.disruptor.Sender;
@@ -36,6 +37,7 @@ public class POCController {
     public static void main(String[] args) {
         Sender sender = new Sender();
         Engine engine = new POCMediationEngine(sender);
+
 
         if (args.length == 2) {
             if (args[0].equals("jaxrs")) {
@@ -57,6 +59,7 @@ public class POCController {
 
             NettyListener nettyListener =
                     new NettyListener(ID, Integer.valueOf(props.getProperty("port", "9090")));
+        DisruptorFactory.createDisruptor(Integer.valueOf(props.getProperty("disruptorthreads", "100")));
             nettyListener.start(channelInitializers);
         } else {
             showUsage();

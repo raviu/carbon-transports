@@ -17,22 +17,12 @@
  */
 package org.wso2.carbon.controller;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.handler.codec.http.*;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
-import org.wso2.carbon.http.netty.common.Util;
 import org.wso2.carbon.http.netty.listener.disruptor.SourceHandler;
-import org.wso2.carbon.http.netty.sender.disruptor.Sender;
-
-import java.net.InetSocketAddress;
-import java.util.Map;
 
 public class POCMediationEngine implements org.wso2.carbon.api.Engine {
     private static Logger log = Logger.getLogger(POCMediationEngine.class);
@@ -52,7 +42,7 @@ public class POCMediationEngine implements org.wso2.carbon.api.Engine {
     public boolean receive(final CarbonMessage msg) {
 
         if (msg.getDirection() == CarbonMessageImpl.IN) {
-            CarbonMessage outMsg = new CarbonMessageImpl(ENGINE_PROTOCOL);
+          final  CarbonMessage outMsg = new CarbonMessageImpl(ENGINE_PROTOCOL);
             outMsg.setEvent(msg.getEvent());
             outMsg.setStatus(msg.getStatus());
             outMsg.setHost(POCController.props.getProperty("proxy_to_host", "localhost"));
@@ -60,11 +50,7 @@ public class POCMediationEngine implements org.wso2.carbon.api.Engine {
             outMsg.setURI(POCController.props.getProperty("proxy_to_uri", "/services/echo"));
             outMsg.setProperties(msg.getProperties());
             outMsg.setProperty(ENGINE_PROTOCOL, "Custom-Header", "PerfTest");
-            try {
-                sender.send(outMsg);
-            } catch (InterruptedException e) {
-               Thread.currentThread().interrupt();
-            }
+           sender.send(outMsg);
         } else {
             sender.sendBack(msg);
         }

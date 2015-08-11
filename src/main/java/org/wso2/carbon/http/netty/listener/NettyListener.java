@@ -74,6 +74,7 @@ public class NettyListener extends CarbonTransport {
                     b.option(ChannelOption.SO_RCVBUF, 1048576);
                     b.childOption(ChannelOption.SO_RCVBUF, 1048576);
                     b.childOption(ChannelOption.SO_SNDBUF, 1048576);
+                    b.childOption(ChannelOption.AUTO_READ,false);
                     Channel ch = null;
                     try {
                         ch = b.bind(port).sync().channel();

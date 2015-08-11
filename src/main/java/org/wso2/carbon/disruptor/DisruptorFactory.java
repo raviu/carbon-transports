@@ -33,7 +33,7 @@ public class DisruptorFactory {
         ExecutorService executorService = Executors.newCachedThreadPool();
         Disruptor disruptor = new Disruptor<CarbonDisruptorEvent>(
                    CarbonDisruptorEvent.EVENT_FACTORY,
-                   1024,
+                   8192,
                    executorService,
                    ProducerType.SINGLE,
                    new YieldingWaitStrategy());

@@ -22,6 +22,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.AsciiString;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
@@ -170,11 +171,11 @@ public class Sender extends TransportSender {
 
     private HttpRequest createHttpRequest(CarbonMessage msg) {
 
-        HttpMethod httpMethod = new HttpMethod((String) msg.getProperty(Constants.PROTOCOL_NAME,
-                Constants.HTTP_METHOD));
+        HttpMethod httpMethod = new HttpMethod(((AsciiString) msg.getProperty(Constants.PROTOCOL_NAME,
+                Constants.HTTP_METHOD)).toString());
 
-        HttpVersion httpVersion = new HttpVersion((String) msg.getProperty(Constants.PROTOCOL_NAME,
-                Constants.HTTP_VERSION), true);
+        HttpVersion httpVersion = new HttpVersion(((AsciiString) msg.getProperty(Constants.PROTOCOL_NAME,
+                Constants.HTTP_VERSION)).toString(), true);
 
         HttpRequest outgoingRequest =
                 new DefaultHttpRequest(httpVersion, httpMethod, msg.getURI(), false);
@@ -194,7 +195,7 @@ public class Sender extends TransportSender {
         int statusCode = (Integer) Util.getIntValue(msg, Constants.HTTP_STATUS_CODE, 200);
 
         HttpResponseStatus httpResponseStatus = new HttpResponseStatus(statusCode,
-                HttpResponseStatus.valueOf(statusCode).reasonPhrase());
+                HttpResponseStatus.valueOf(statusCode).reasonPhrase().toString());
 
         DefaultHttpResponse outgoingResponse = new DefaultHttpResponse(httpVersion,
                 httpResponseStatus, false);

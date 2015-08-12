@@ -67,7 +67,7 @@ public class Pipe implements org.wso2.carbon.api.Pipe {
         return isReadComplete.get();
     }
 
-    public void addTrailingHeader(String key, String value) {
+    public void addTrailingHeader(CharSequence key, CharSequence value) {
         trailingheaders.put(key, value);
     }
 

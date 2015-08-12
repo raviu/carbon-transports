@@ -74,11 +74,11 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             cMsg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
-            cMsg.setURI(httpRequest.getUri());
+            cMsg.setURI(httpRequest.uri());
             cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.HTTP_VERSION, httpRequest.getProtocolVersion().text());
+                    Constants.HTTP_VERSION, httpRequest.protocolVersion().text());
             cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.HTTP_METHOD, httpRequest.getMethod().name());
+                    Constants.HTTP_METHOD, httpRequest.method().name());
             cMsg.setProperty(Constants.PROTOCOL_NAME,
                     Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));
             cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX, ctx);
@@ -93,7 +93,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
                 if (msg instanceof LastHttpContent) {
                     LastHttpContent lastHttpContent = (LastHttpContent) msg;
                     HttpHeaders trailingHeaders = lastHttpContent.trailingHeaders();
-                    for (String val : trailingHeaders.names()) {
+                    for (CharSequence val : trailingHeaders.names()) {
                         ((Pipe) cMsg.getPipe()).
                                 addTrailingHeader(val, trailingHeaders.get(val));
                     }

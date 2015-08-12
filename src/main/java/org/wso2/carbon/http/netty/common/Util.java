@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.http.netty.common;
 
+import io.netty.handler.codec.AsciiString;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
 import org.wso2.carbon.api.CarbonMessage;
@@ -26,10 +27,10 @@ import java.util.Map;
 
 public class Util {
 
-    public static Map<String, String> getHeaders(HttpMessage message) {
-        Map<String, String> headers = new HashMap<String, String>();
+    public static Map<CharSequence, CharSequence> getHeaders(HttpMessage message) {
+        Map<CharSequence, CharSequence> headers = new HashMap<>();
         if (message.headers() != null) {
-            for (String k: message.headers().names()) {
+            for (CharSequence k: message.headers().names()) {
                 headers.put(k, message.headers().get(k));
             }
         }
@@ -48,6 +49,15 @@ public class Util {
         String value = (String) msg.getProperty(Constants.PROTOCOL_NAME, key);
         if (value == null) {
             return defaultValue;
+        }
+
+        return value;
+    }
+
+    public static String getStringValue(CarbonMessage msg, String key, AsciiString defaultValue) {
+        String value = (String) msg.getProperty(Constants.PROTOCOL_NAME, key);
+        if (value == null) {
+            return defaultValue.toString();
         }
 
         return value;

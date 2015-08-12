@@ -63,7 +63,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
             cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
+                    Constants.HTTP_STATUS_CODE, httpResponse.status().code());
             cMsg.setProperty(Constants.PROTOCOL_NAME,
                     Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
             cMsg.setProperty(Constants.PROTOCOL_NAME,

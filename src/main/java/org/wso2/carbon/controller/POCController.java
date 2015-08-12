@@ -60,7 +60,7 @@ public class POCController {
 
             NettyListener nettyListener =
                        new NettyListener(ID, Integer.valueOf(props.getProperty("port", "9090")));
-            DisruptorFactory.createDisruptor(Integer.valueOf(props.getProperty("disruptorthreads", "1")));
+            DisruptorFactory.createDisruptor(Integer.valueOf(props.getProperty("disruptorbufferSize", "1024")));
             //   DisruptorFactory.populateDisruptors(100);
             nettyListener.start(channelInitializers);
 //        } else {

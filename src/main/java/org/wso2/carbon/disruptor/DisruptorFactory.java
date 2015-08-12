@@ -38,12 +38,12 @@ public class DisruptorFactory {
     public static Disruptor getDisruptor(int threadPoolSize) {
         return disruptor;
     }
-    public static Disruptor createDisruptor(int threadPoolSize) {
+    public static Disruptor createDisruptor(int bufferSize) {
 
         ExecutorService executorService = Executors.newFixedThreadPool(1);
        disruptor = new Disruptor<CarbonDisruptorEvent>(
                    CarbonDisruptorEvent.EVENT_FACTORY,
-                   1024,
+                   bufferSize,
                    executorService,
                    ProducerType.MULTI,
                    PhasedBackoffWaitStrategy.withLiteLock(1, 4, TimeUnit.SECONDS));

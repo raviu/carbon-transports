@@ -22,13 +22,39 @@ import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.disruptor.event.CarbonDisruptorEvent;
 import org.wso2.carbon.http.netty.common.Constants;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class CarbonDisruptorEventHandler extends DisruptorEventHandler{
+
+    private ExecutorService executorService = Executors.newCachedThreadPool();
 
     @Override
     public void onEvent(CarbonDisruptorEvent carbonDisruptorEvent, long l, boolean b) throws Exception {
         CarbonMessage carbonMessage = (CarbonMessage)carbonDisruptorEvent.getEvent();
         Engine engine = (Engine) carbonMessage.getProperty(Constants.PROTOCOL_NAME, Constants.ENGINE);
-       engine.receive(carbonMessage);
+      engine.receive(carbonMessage);
+       // executorService.submit(new Worker(engine,carbonMessage));
     }
 
+
+
+
+
+
+}
+
+class Worker implements Runnable {
+    private Engine engine;
+    private  CarbonMessage carbonMessage;
+
+    public Worker(Engine engine, CarbonMessage carbonMessage){
+       this.engine=engine;
+        this.carbonMessage=carbonMessage;
+    }
+
+    @Override
+    public void run() {
+        engine.receive(carbonMessage);
+    }
 }

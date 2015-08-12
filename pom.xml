@@ -62,9 +62,9 @@
             <version>${netty.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.lmax</groupId>
+            <groupId>org.wso2.orbit.com.lmax</groupId>
             <artifactId>disruptor</artifactId>
-            <version>${lmax.disruptor.version}</version>
+            <version>${disruptor.version}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
@@ -159,7 +159,7 @@
         <org.wso2.carbon.core.version>5.0.0-SNAPSHOT</org.wso2.carbon.core.version>
         <osgi.framework.import.version.range>[1.7.0, 1.8.0)</osgi.framework.import.version.range>
         <osgi.service.tracker.import.version.range>[1.5.1, 1.6.0)</osgi.service.tracker.import.version.range>
-        <lmax.disruptor.version>3.2.1</lmax.disruptor.version>
+        <disruptor.version>3.3.2.wso2v2</disruptor.version>
     </properties>
 
 </project>

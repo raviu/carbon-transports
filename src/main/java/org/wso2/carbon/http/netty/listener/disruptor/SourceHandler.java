@@ -42,8 +42,9 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private Disruptor disruptor;
 
 
-    public SourceHandler(Engine engine) {
+    public SourceHandler(Engine engine , Disruptor disruptor) {
         this.engine = engine;
+      //  this.disruptor = disruptor;
     }
 
     @Override

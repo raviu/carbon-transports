@@ -33,7 +33,7 @@ public class InjectorHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void userEventTriggered(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof CarbonMessage) {
             CarbonMessage cMsg = (CarbonMessage) msg;
             ctx.executor().submit(new Worker(engine, cMsg));

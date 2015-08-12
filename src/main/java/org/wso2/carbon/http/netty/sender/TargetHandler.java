@@ -70,7 +70,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
                     Constants.CHNL_HNDLR_CTX, inboundChannelHandlerContext);
             cMsg.setPipe(new Pipe(Constants.TARGET_PIPE));
 
-            ctx.fireChannelRead(cMsg);
+            ctx.fireUserEventTriggered(cMsg);
 //            WorkerPool.submitJob(new Worker(engine, cMsg));
         } else if (msg instanceof HttpContent) {
             HTTPContentChunk chunk;

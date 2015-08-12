@@ -89,7 +89,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
             cMsg.setPipe(new Pipe(Constants.SOURCE_PIPE));
 
-            ctx.fireChannelRead(cMsg);
+            ctx.fireUserEventTriggered(cMsg);
 //            WorkerPool.submitJob(new Worker(engine, cMsg));
         } else if (msg instanceof HttpContent) {
             HTTPContentChunk chunk;

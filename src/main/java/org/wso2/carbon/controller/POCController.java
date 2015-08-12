@@ -24,10 +24,11 @@ import org.wso2.carbon.http.netty.listener.NettyListener;
 import org.wso2.carbon.http.netty.listener.SourceInitializer;
 import org.wso2.carbon.http.netty.sender.disruptor.Sender;
 
-
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class POCController {
 
@@ -54,18 +55,19 @@ public class POCController {
                 System.exit(0);
             }
 
-           Map<String, ChannelInitializer> channelInitializers = new HashMap<>();
-           channelInitializers.put("SourceInitializer", new SourceInitializer(engine));
+            Map<String, ChannelInitializer> channelInitializers = new HashMap<>();
+            channelInitializers.put("SourceInitializer", new SourceInitializer(engine));
 
             NettyListener nettyListener =
-                    new NettyListener(ID, Integer.valueOf(props.getProperty("port", "9090")));
-        DisruptorFactory.createDisruptor(Integer.valueOf(props.getProperty("disruptorthreads", "100")));
+                       new NettyListener(ID, Integer.valueOf(props.getProperty("port", "9090")));
+            DisruptorFactory.createDisruptor(Integer.valueOf(props.getProperty("disruptorthreads", "1")));
+            //   DisruptorFactory.populateDisruptors(100);
             nettyListener.start(channelInitializers);
-        } else {
-            showUsage();
+//        } else {
+//            showUsage();
+//        }
         }
     }
-
     private static void showUsage() {
         System.out.println("\n\n");
         System.out.println("Usage: java -jar server.jar <default |  " +

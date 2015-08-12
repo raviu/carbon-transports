@@ -23,31 +23,60 @@ import org.wso2.carbon.disruptor.event.CarbonDisruptorEvent;
 import org.wso2.carbon.disruptor.exception.GenericExceptionHandler;
 import org.wso2.carbon.disruptor.handler.CarbonDisruptorEventHandler;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class DisruptorFactory {
 
     private static  Disruptor disruptor;
+
+    private static List<Disruptor> disruptorMap = new ArrayList<Disruptor>();
 
     public static Disruptor getDisruptor(int threadPoolSize) {
         return disruptor;
     }
     public static Disruptor createDisruptor(int threadPoolSize) {
 
-        ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
        disruptor = new Disruptor<CarbonDisruptorEvent>(
                    CarbonDisruptorEvent.EVENT_FACTORY,
-                   8192,
+                   1024,
                    executorService,
                    ProducerType.MULTI,
-                   new YieldingWaitStrategy());
+                   PhasedBackoffWaitStrategy.withLiteLock(1, 4, TimeUnit.SECONDS));
         ExceptionHandler exh = new GenericExceptionHandler();
         EventHandler eventHandler = new CarbonDisruptorEventHandler();
         disruptor.handleEventsWith(eventHandler);
         disruptor.handleExceptionsFor(eventHandler).with(exh);
         disruptor.start();
         return disruptor;
+    }
+
+    public static void populateDisruptors(int concurrency) {
+
+       for(int i=0;i<2*concurrency;i++) {
+           ExecutorService executorService = Executors.newFixedThreadPool(1);
+           disruptor = new Disruptor<CarbonDisruptorEvent>(
+                      CarbonDisruptorEvent.EVENT_FACTORY,
+                      4096,
+                      executorService,
+                      ProducerType.SINGLE,
+                      PhasedBackoffWaitStrategy.withLock(1, 4, TimeUnit.SECONDS));
+           ExceptionHandler exh = new GenericExceptionHandler();
+           EventHandler eventHandler = new CarbonDisruptorEventHandler();
+           disruptor.handleEventsWith(eventHandler);
+           disruptor.handleExceptionsFor(eventHandler).with(exh);
+           disruptor.start();
+           disruptorMap.add(disruptor);
+       }
+
+    }
+
+    public static Disruptor  getDisruptorFromMap(){
+        return disruptorMap.remove(0);
     }
 
 }

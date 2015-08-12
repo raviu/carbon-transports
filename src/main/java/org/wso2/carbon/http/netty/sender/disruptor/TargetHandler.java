@@ -39,15 +39,16 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     private ChannelHandlerContext inboundChannelHandlerContext;
     private Disruptor disruptor;
 
-    public TargetHandler(Engine engine, ChannelHandlerContext inboundChannelHandlerContext) {
+    public TargetHandler(Engine engine, ChannelHandlerContext inboundChannelHandlerContext , Disruptor disruptor) {
         this.engine = engine;
         this.inboundChannelHandlerContext = inboundChannelHandlerContext;
+       // this.disruptor = disruptor;
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        disruptor = DisruptorFactory.getDisruptor(20);
+       disruptor = DisruptorFactory.getDisruptor(20);
       //  disruptor.start();
     }
 

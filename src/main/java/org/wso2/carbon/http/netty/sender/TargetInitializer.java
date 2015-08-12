@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.http.netty.sender;
 
+import com.lmax.disruptor.dsl.Disruptor;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -25,6 +26,7 @@ import io.netty.handler.codec.http.HttpRequestEncoder;
 import io.netty.handler.codec.http.HttpResponseDecoder;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.disruptor.DisruptorFactory;
 import org.wso2.carbon.http.netty.sender.disruptor.TargetHandler;
 
 public class TargetInitializer extends ChannelInitializer<SocketChannel> {
@@ -42,10 +44,11 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
+     //  Disruptor disruptor = DisruptorFactory.getDisruptorFromMap();
         ChannelPipeline p = ch.pipeline();
         p.addLast("decoder", new HttpResponseDecoder());
         p.addLast("encoder", new HttpRequestEncoder());
 //        p.addLast("aggegator", new HttpObjectAggregator(512 * 1024));
-        p.addLast(HANDLER, new TargetHandler(engine, ctx));
+        p.addLast(HANDLER, new TargetHandler(engine, ctx, null ));
     }
 }

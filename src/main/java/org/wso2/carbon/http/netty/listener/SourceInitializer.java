@@ -23,17 +23,22 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
+import io.netty.util.concurrent.MultithreadEventExecutorGroup;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.http.netty.common.InjectorHandler;
 
 public class SourceInitializer extends ChannelInitializer<SocketChannel> {
 
     private static final Logger log = Logger.getLogger(SourceInitializer.class);
 
     private Engine engine;
+    private MultithreadEventExecutorGroup eeg;
 
-    public SourceInitializer(Engine engine) {
+    public SourceInitializer(Engine engine, MultithreadEventExecutorGroup eeg) {
         this.engine = engine;
+        this.eeg = eeg;
     }
 
     @Override
@@ -45,8 +50,9 @@ public class SourceInitializer extends ChannelInitializer<SocketChannel> {
         p.addLast("decoder", new HttpRequestDecoder());
         p.addLast("encoder", new HttpResponseEncoder());
         //TODO Test adding event executor group as below
-//        p.addLast(new DefaultEventExecutorGroup(10), "handler", new SourceHandler(engine));
-        p.addLast("handler", new SourceHandler(engine));
+        p.addLast("handler", new SourceHandler(engine, eeg));
+        p.addLast(eeg, new InjectorHandler(engine));
+//        p.addLast("handler", new SourceHandler(engine));
     }
 
 }

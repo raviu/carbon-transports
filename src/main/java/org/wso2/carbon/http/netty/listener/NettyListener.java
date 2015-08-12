@@ -30,7 +30,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.CarbonTransport;
+import org.wso2.carbon.transports.CarbonTransport;
 import org.wso2.carbon.controller.POCController;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
@@ -60,8 +60,11 @@ public class NettyListener extends CarbonTransport {
         this.port = port;
     }
 
+    @Override
+    public void start() {
+    }
+
     public void start(final Map<String, ChannelInitializer> defaultInitializers) {
-        super.start();
         log.info("### Netty Boss Count: " + Integer.valueOf(POCController.props.getProperty(
                 "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
         log.info("### Netty Worker Count: " + Integer.valueOf(POCController.props.getProperty(
@@ -69,6 +72,7 @@ public class NettyListener extends CarbonTransport {
 
         this.defaultInitializers = defaultInitializers;
         startServer(defaultInitializers);
+        start();
     }
 
     private void startServer(final Map<String, ChannelInitializer> defaultInitializers) {

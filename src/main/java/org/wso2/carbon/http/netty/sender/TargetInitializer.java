@@ -23,8 +23,11 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequestEncoder;
 import io.netty.handler.codec.http.HttpResponseDecoder;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.MultithreadEventExecutorGroup;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.http.netty.common.InjectorHandler;
 
 public class TargetInitializer extends ChannelInitializer<SocketChannel> {
     private static Logger log = Logger.getLogger(TargetInitializer.class);
@@ -33,10 +36,13 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
 
     private Engine engine;
     private volatile ChannelHandlerContext ctx;
+    private MultithreadEventExecutorGroup eeg;
 
-    public TargetInitializer(Engine engine, ChannelHandlerContext ctx) {
+    public TargetInitializer(Engine engine,
+                             ChannelHandlerContext ctx, MultithreadEventExecutorGroup eeg) {
         this.engine = engine;
         this.ctx = ctx;
+        this.eeg = eeg;
     }
 
     @Override
@@ -46,5 +52,6 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
         p.addLast("encoder", new HttpRequestEncoder());
 //        p.addLast("aggegator", new HttpObjectAggregator(512 * 1024));
         p.addLast(HANDLER, new TargetHandler(engine, ctx));
+        p.addLast(eeg, new InjectorHandler(engine));
     }
 }

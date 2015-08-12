@@ -18,6 +18,8 @@
 package org.wso2.carbon.controller;
 
 import io.netty.channel.ChannelInitializer;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.http.netty.listener.NettyListener;
 import org.wso2.carbon.http.netty.listener.SourceInitializer;
@@ -30,6 +32,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class POCController {
+    private static Logger log = Logger.getLogger(POCController.class);
 
     public static Properties props = new Properties();
     private static String ID = "HTTP-netty";
@@ -53,8 +56,13 @@ public class POCController {
                 System.exit(0);
             }
 
+            int executorPoolSize = Integer.valueOf((String) props.getProperty("workers", "300"));
+            log.info("### Executor pool size:- " + executorPoolSize);
+
             Map<String, ChannelInitializer> channelInitializers = new HashMap<>();
-            channelInitializers.put("SourceInitializer", new SourceInitializer(engine));
+            DefaultEventExecutorGroup eeg = new DefaultEventExecutorGroup(executorPoolSize);
+
+            channelInitializers.put("SourceInitializer",  new SourceInitializer(engine, eeg));
 
             NettyListener nettyListener =
                     new NettyListener(ID, Integer.valueOf(props.getProperty("port", "9090")));

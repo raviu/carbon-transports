@@ -27,6 +27,7 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.util.concurrent.MultithreadEventExecutorGroup;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
@@ -49,9 +50,11 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private Bootstrap bootstrap;
     private ChannelFuture channelFuture;
     private Channel channel;
+    private MultithreadEventExecutorGroup eeg;
 
-    public SourceHandler(Engine engine) {
+    public SourceHandler(Engine engine, MultithreadEventExecutorGroup eeg) {
         this.engine = engine;
+        this.eeg = eeg;
     }
 
     @Override
@@ -59,7 +62,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         bootstrap = new Bootstrap();
         bootstrap.group(ctx.channel().eventLoop())
                 .channel(ctx.channel().getClass())
-                .handler(new TargetInitializer(engine, ctx));
+                .handler(new TargetInitializer(engine, ctx, eeg));
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
@@ -86,7 +89,8 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
             cMsg.setPipe(new Pipe(Constants.SOURCE_PIPE));
 
-            WorkerPool.submitJob(new Worker(engine, cMsg));
+            ctx.fireChannelRead(cMsg);
+//            WorkerPool.submitJob(new Worker(engine, cMsg));
         } else if (msg instanceof HttpContent) {
             HTTPContentChunk chunk;
             if (cMsg != null) {

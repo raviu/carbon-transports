@@ -122,13 +122,13 @@ public class NettyTransportActivator implements BundleActivator {
             }
         };
 
-        String nettyServerXML = "repository" + File.separator + "conf" + File.separator + "netty-server.xml";
+        String nettyTransportsXML = "repository" + File.separator + "conf" + File.separator + "netty-transports.xml";
         try {
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser saxParser = factory.newSAXParser();
-            saxParser.parse(nettyServerXML, handler);
+            saxParser.parse(nettyTransportsXML, handler);
         } catch (ParserConfigurationException | SAXException | IOException e) {
-            log.error("Cannot parse " + nettyServerXML, e);
+            log.error("Cannot parse " + nettyTransportsXML, e);
         }
         return listeners;
     }

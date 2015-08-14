@@ -30,11 +30,9 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.CarbonTransport;
 import org.wso2.carbon.controller.POCController;
 import org.wso2.carbon.http.netty.common.Constants;
-
-import java.util.Map;
+import org.wso2.carbon.transports.CarbonTransport;
 
 public class NettyListener extends CarbonTransport {
     private static Logger log = Logger.getLogger(NettyListener.class);
@@ -42,7 +40,6 @@ public class NettyListener extends CarbonTransport {
     private static String id = "HTTP-netty";
     private int port;
     private String SERVER_STATE = Constants.STATE_STOPPED;
-    private Map<String, ChannelInitializer> defaultInitializers;
 
     private ServerBootstrap b;
     private EventLoopGroup bossGroup =
@@ -53,29 +50,33 @@ public class NettyListener extends CarbonTransport {
                     "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors() * 2))));
     private static ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
+    private ChannelInitializer defaultInitializer;
+
     public NettyListener(String id, int port) {
         super(id);
         this.port = port;
     }
 
-    public void start(final Map<String, ChannelInitializer> defaultInitializers) {
-        super.start();
+    public void setDefaultInitializer(ChannelInitializer defaultInitializer) {
+        this.defaultInitializer = defaultInitializer;
+    }
+
+    public void start() {
         log.info("### Netty Boss Count: " + Integer.valueOf(POCController.props.getProperty(
                 "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
         log.info("### Netty Worker Count: " + Integer.valueOf(POCController.props.getProperty(
                 "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));
 
-        this.defaultInitializers = defaultInitializers;
-        startServer(defaultInitializers);
+        startServer();
     }
 
-    private void startServer(final Map<String, ChannelInitializer> defaultInitializers) {
+    private void startServer() {
         try {
             b = new ServerBootstrap();
             b.option(ChannelOption.SO_BACKLOG, 100);
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class);
-            addChannelInitializer(b);
+            addChannelInitializer();
             b.childOption(ChannelOption.TCP_NODELAY, true);
             b.option(ChannelOption.SO_KEEPALIVE, true);
             b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
@@ -101,8 +102,12 @@ public class NettyListener extends CarbonTransport {
         }
     }
 
-    private void addChannelInitializer(ServerBootstrap bootstrap) {
-        bootstrap.childHandler(new NettyServerInitializer(id));
+    private void addChannelInitializer() {
+        if (defaultInitializer != null) {
+            b.childHandler(defaultInitializer);
+        } else {
+            b.childHandler(new NettyServerInitializer(id));
+        }
     }
 
     @Override
@@ -127,7 +132,7 @@ public class NettyListener extends CarbonTransport {
                 "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
         workerGroup = new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
                 "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));
-        startServer(defaultInitializers);
+        startServer();
     }
 
     public String getState() {

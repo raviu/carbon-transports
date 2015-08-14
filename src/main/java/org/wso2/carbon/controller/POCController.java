@@ -53,12 +53,10 @@ public class POCController {
                 System.exit(0);
             }
 
-            Map<String, ChannelInitializer> channelInitializers = new HashMap<>();
-            channelInitializers.put("SourceInitializer", new SourceInitializer(engine));
-
             NettyListener nettyListener =
                     new NettyListener(ID, Integer.valueOf(props.getProperty("port", "9090")));
-            nettyListener.start(channelInitializers);
+            nettyListener.setDefaultInitializer(new SourceInitializer(engine));
+            nettyListener.start();
         } else {
             showUsage();
         }

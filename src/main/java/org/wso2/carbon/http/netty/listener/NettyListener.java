@@ -34,6 +34,8 @@ import org.wso2.carbon.controller.POCController;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.transports.CarbonTransport;
 
+import java.io.File;
+
 public class NettyListener extends CarbonTransport {
     private static Logger log = Logger.getLogger(NettyListener.class);
 
@@ -41,7 +43,7 @@ public class NettyListener extends CarbonTransport {
     private int port;
     private String SERVER_STATE = Constants.STATE_STOPPED;
 
-    private ServerBootstrap b;
+    private ServerBootstrap bootstrap;
     private EventLoopGroup bossGroup =
             new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
                     "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
@@ -51,10 +53,20 @@ public class NettyListener extends CarbonTransport {
     private static ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     private ChannelInitializer defaultInitializer;
+    private Config nettyConfig;
 
     public NettyListener(String id, int port) {
         super(id);
         this.port = port;
+    }
+
+    public NettyListener(Config nettyConfig) {
+        super(nettyConfig.getId());
+        this.nettyConfig = nettyConfig;
+        bossGroup = new NioEventLoopGroup(nettyConfig.getBossThreads());
+        workerGroup = new NioEventLoopGroup(nettyConfig.getWorkerThreads());
+
+        //TODO: setup SSL
     }
 
     public void setDefaultInitializer(ChannelInitializer defaultInitializer) {
@@ -67,27 +79,27 @@ public class NettyListener extends CarbonTransport {
         log.info("### Netty Worker Count: " + Integer.valueOf(POCController.props.getProperty(
                 "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));
 
-        startServer();
+        startTransport();
     }
 
-    private void startServer() {
+    private void startTransport() {
         try {
-            b = new ServerBootstrap();
-            b.option(ChannelOption.SO_BACKLOG, 100);
-            b.group(bossGroup, workerGroup)
+            bootstrap = new ServerBootstrap();
+            bootstrap.option(ChannelOption.SO_BACKLOG, 100);
+            bootstrap.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class);
             addChannelInitializer();
-            b.childOption(ChannelOption.TCP_NODELAY, true);
-            b.option(ChannelOption.SO_KEEPALIVE, true);
-            b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
+            bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
+            bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
+            bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
 
-            b.option(ChannelOption.SO_SNDBUF, 1048576);
-            b.option(ChannelOption.SO_RCVBUF, 1048576);
-            b.childOption(ChannelOption.SO_RCVBUF, 1048576);
-            b.childOption(ChannelOption.SO_SNDBUF, 1048576);
+            bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
+            bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
+            bootstrap.childOption(ChannelOption.SO_RCVBUF, 1048576);
+            bootstrap.childOption(ChannelOption.SO_SNDBUF, 1048576);
             Channel ch = null;
             try {
-                ch = b.bind(port).sync().channel();
+                ch = bootstrap.bind(port).sync().channel();
                 allChannels.add(ch);
                 SERVER_STATE = Constants.STATE_STARTED;
                 log.info("Listener starting on port " + port);
@@ -104,9 +116,9 @@ public class NettyListener extends CarbonTransport {
 
     private void addChannelInitializer() {
         if (defaultInitializer != null) {
-            b.childHandler(defaultInitializer);
+            bootstrap.childHandler(defaultInitializer);
         } else {
-            b.childHandler(new NettyServerInitializer(id));
+            bootstrap.childHandler(new NettyServerInitializer(id));
         }
     }
 
@@ -132,7 +144,7 @@ public class NettyListener extends CarbonTransport {
                 "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
         workerGroup = new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
                 "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));
-        startServer();
+        startTransport();
     }
 
     public String getState() {
@@ -158,6 +170,130 @@ public class NettyListener extends CarbonTransport {
 
     public static ChannelGroup getListenerChannelGroup() {
         return allChannels;
+    }
+
+    public static class Config {
+
+        private String id;
+        private String host = "127.0.0.1";
+        private int port = 8080;
+        private int bossThreads = Runtime.getRuntime().availableProcessors();
+        private int workerThreads = Runtime.getRuntime().availableProcessors() * 2;
+        private int execThreads = 50;
+        private SslConfig sslConfig;
+
+        public Config(String id) {
+            if(id == null) {
+                throw new IllegalArgumentException("Netty transport ID is null");
+            }
+            this.id = id;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public int getBossThreads() {
+            return bossThreads;
+        }
+
+        public Config setBossThreads(int bossThreads) {
+            this.bossThreads = bossThreads;
+            return this;
+        }
+
+        public int getExecThreads() {
+            return execThreads;
+        }
+
+        public Config setExecThreads(int execThreads) {
+            this.execThreads = execThreads;
+            return this;
+        }
+
+        public String getHost() {
+            return host;
+        }
+
+        public Config setHost(String host) {
+            this.host = host;
+            return this;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public Config setPort(int port) {
+            this.port = port;
+            return this;
+        }
+
+        public int getWorkerThreads() {
+            return workerThreads;
+        }
+
+        public Config setWorkerThreads(int workerThreads) {
+            this.workerThreads = workerThreads;
+            return this;
+        }
+
+        public Config enableSsl(SslConfig sslConfig) {
+            this.sslConfig = sslConfig;
+            return this;
+        }
+
+        public SslConfig getSslConfig() {
+            return sslConfig;
+        }
+
+        public static class SslConfig {
+            private File keyStore;
+            private String keyStorePass;
+            private String certPass;
+            private File trustStore;
+            private String trustStorePass;
+
+            public SslConfig(File keyStore, String keyStorePass) {
+                this.keyStore = keyStore;
+                this.keyStorePass = keyStorePass;
+            }
+
+            public String getCertPass() {
+                return certPass;
+            }
+
+            public SslConfig setCertPass(String certPass) {
+                this.certPass = certPass;
+                return this;
+            }
+
+            public File getTrustStore() {
+                return trustStore;
+            }
+
+            public SslConfig setTrustStore(File trustStore) {
+                this.trustStore = trustStore;
+                return this;
+            }
+
+            public String getTrustStorePass() {
+                return trustStorePass;
+            }
+
+            public SslConfig setTrustStorePass(String trustStorePass) {
+                this.trustStorePass = trustStorePass;
+                return this;
+            }
+
+            public File getKeyStore() {
+                return keyStore;
+            }
+
+            public String getKeyStorePass() {
+                return keyStorePass;
+            }
+        }
     }
 
 }

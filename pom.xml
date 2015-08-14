@@ -113,6 +113,7 @@
                     <instructions>
                         <Bundle-Vendor>WSO2 Inc</Bundle-Vendor>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Activator>org.wso2.carbon.http.netty.internal.NettyTransportActivator</Bundle-Activator>
                         <Private-Package>
                             org.wso2.carbon.http.netty.internal
                         </Private-Package>

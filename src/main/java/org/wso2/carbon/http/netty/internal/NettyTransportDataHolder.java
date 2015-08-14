@@ -19,10 +19,9 @@
 package org.wso2.carbon.http.netty.internal;
 
 import io.netty.channel.ChannelInitializer;
+import org.wso2.carbon.http.netty.listener.CarbonNettyServerInitializer;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,9 +30,9 @@ import java.util.Map;
 public class NettyTransportDataHolder {
 
     private static NettyTransportDataHolder instance = new NettyTransportDataHolder();
-    private Map<String, List<ChannelInitializer>> channelInitializers = new HashMap<>();
+    private Map<String, CarbonNettyServerInitializer> channelInitializers = new HashMap<>();
 
-    private NettyTransportDataHolder(){
+    private NettyTransportDataHolder() {
 
     }
 
@@ -41,27 +40,15 @@ public class NettyTransportDataHolder {
         return instance;
     }
 
-    public synchronized void addNettyChannelInitializer(String key, ChannelInitializer initializer) {
-        List<ChannelInitializer> chInitializers = this.channelInitializers.get(key);
-        if (chInitializers == null) {
-            chInitializers = new ArrayList<>();
-            this.channelInitializers.put(key, chInitializers);
-        }
-        chInitializers.add(initializer);
+    public synchronized void addNettyChannelInitializer(String key, CarbonNettyServerInitializer initializer) {
+        this.channelInitializers.put(key, initializer);
     }
 
-    public List<ChannelInitializer> getChannelInitializers(String key) {
-        List<ChannelInitializer> chInitializers = channelInitializers.get(key);
-        return chInitializers == null ? new ArrayList<ChannelInitializer>() : chInitializers;
+    public CarbonNettyServerInitializer getChannelInitializer(String key) {
+        return channelInitializers.get(key);
     }
 
-    public void removeNettyChannelInitializer(String key, ChannelInitializer channelInitializer) {
-        List<ChannelInitializer> chInitializers = channelInitializers.get(key);
-        if (chInitializers != null) {
-            chInitializers.remove(channelInitializer);
-            if (chInitializers.isEmpty()) {
-               channelInitializers.remove(key);
-            }
-        }
+    public void removeNettyChannelInitializer(String key) {
+        channelInitializers.remove(key);
     }
 }

@@ -18,13 +18,13 @@
  */
 package org.wso2.carbon.http.netty.internal;
 
-import io.netty.channel.ChannelInitializer;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.http.netty.listener.CarbonNettyServerInitializer;
 
 import java.util.Map;
 
@@ -47,12 +47,12 @@ public class NettyTransportServiceComponent {
 
     @Reference(
             name = "netty-channel.initializer",
-            service = ChannelInitializer.class,
-            cardinality = ReferenceCardinality.AT_LEAST_ONE,
+            service = CarbonNettyServerInitializer.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "removeNettyChannelInitializer"
     )
-    protected void addNettyChannelInitializer(ChannelInitializer initializer, Map<String, ?> properties) {
+    protected void addNettyChannelInitializer(CarbonNettyServerInitializer initializer, Map<String, ?> properties) {
         try {
             String channelId = (String) properties.get(CHANNEL_ID_KEY);
             if(channelId != null) {
@@ -66,8 +66,8 @@ public class NettyTransportServiceComponent {
     }
 
     @SuppressWarnings("unused")
-    protected void removeNettyChannelInitializer(ChannelInitializer initializer, Map<String, ?> properties) {
+    protected void removeNettyChannelInitializer(CarbonNettyServerInitializer initializer, Map<String, ?> properties) {
         String channelId = (String) properties.get(CHANNEL_ID_KEY);
-        dataHolder.removeNettyChannelInitializer(channelId, initializer);
+        dataHolder.removeNettyChannelInitializer(channelId);
     }
 }

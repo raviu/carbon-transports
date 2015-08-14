@@ -33,9 +33,7 @@ import org.apache.log4j.Logger;
 import org.wso2.carbon.CarbonTransport;
 import org.wso2.carbon.controller.POCController;
 import org.wso2.carbon.http.netty.common.Constants;
-import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
 
-import java.util.List;
 import java.util.Map;
 
 public class NettyListener extends CarbonTransport {
@@ -77,7 +75,7 @@ public class NettyListener extends CarbonTransport {
             b.option(ChannelOption.SO_BACKLOG, 100);
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class);
-            addChannelInitializers(b, defaultInitializers);
+            addChannelInitializer(b);
             b.childOption(ChannelOption.TCP_NODELAY, true);
             b.option(ChannelOption.SO_KEEPALIVE, true);
             b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
@@ -103,20 +101,8 @@ public class NettyListener extends CarbonTransport {
         }
     }
 
-    private void addChannelInitializers(ServerBootstrap bootstrap,
-                                        Map<String, ChannelInitializer> defaultInitializers) {
-        List<ChannelInitializer> channelInitializers
-                = NettyTransportDataHolder.getInstance().getChannelInitializers(id);
-        if (!channelInitializers.isEmpty()) {
-            for (ChannelInitializer channelInitializer : channelInitializers) {
-                bootstrap.childHandler(channelInitializer);
-            }
-        } else {
-            for (Map.Entry<String, ChannelInitializer> channelInitializer :
-                    defaultInitializers.entrySet()) {
-                bootstrap.childHandler(channelInitializer.getValue());
-            }
-        }
+    private void addChannelInitializer(ServerBootstrap bootstrap) {
+        bootstrap.childHandler(new NettyServerInitializer(id));
     }
 
     @Override

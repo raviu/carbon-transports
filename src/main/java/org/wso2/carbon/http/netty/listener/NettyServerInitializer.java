@@ -40,7 +40,7 @@ public class NettyServerInitializer  extends ChannelInitializer<SocketChannel> {
         //TODO: Add the generic handlers to the pipeline
         // e.g. SSL handler
 
-        //TODO: Lookup the OSGi services which implement <CarbonNettyServerInitializer>
+        // Add the rest of the handlers to the pipeline
         CarbonNettyServerInitializer initializer = NettyTransportDataHolder.getInstance().getChannelInitializer(transportID);
         if (initializer != null) {
             if (log.isDebugEnabled()) {
@@ -48,6 +48,5 @@ public class NettyServerInitializer  extends ChannelInitializer<SocketChannel> {
             }
             initializer.initChannel(socketChannel);
         }
-        //TODO: the OSGi service above will add the rest of the handlers to the pipeline
     }
 }

@@ -57,6 +57,14 @@ public class POCController {
             NettyListener nettyListener = new NettyListener(nettyConfig);
             nettyListener.setDefaultInitializer(new SourceInitializer(engine));
             nettyListener.start();
+
+            while(true) {
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         } else {
             showUsage();
         }

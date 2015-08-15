@@ -18,7 +18,7 @@
 package org.wso2.carbon.http.netty.listener;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -34,6 +34,7 @@ import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.transports.CarbonTransport;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 
 public class NettyListener extends CarbonTransport {
     private static Logger log = Logger.getLogger(NettyListener.class);
@@ -71,34 +72,33 @@ public class NettyListener extends CarbonTransport {
     }
 
     private void startTransport() {
-        try {
-            bootstrap = new ServerBootstrap();
-            bootstrap.option(ChannelOption.SO_BACKLOG, 100);
-            bootstrap.group(bossGroup, workerGroup)
-                    .channel(NioServerSocketChannel.class);
-            addChannelInitializer();
-            bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
-            bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
-            bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
+        bootstrap = new ServerBootstrap();
+        bootstrap.option(ChannelOption.SO_BACKLOG, 100);
+        bootstrap.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class);
+        addChannelInitializer();
+        bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
+        bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
+        bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
 
-            bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
-            bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
-            bootstrap.childOption(ChannelOption.SO_RCVBUF, 1048576);
-            bootstrap.childOption(ChannelOption.SO_SNDBUF, 1048576);
-            Channel ch = null;
-            try {
-                ch = bootstrap.bind(nettyConfig.getPort()).sync().channel();
-                allChannels.add(ch);
-                SERVER_STATE = Constants.STATE_STARTED;
-                log.info("Netty Listener starting on port " + nettyConfig.getPort());
-                ch.closeFuture().sync();
-                allChannels.close().awaitUninterruptibly();
-            } catch (InterruptedException e) {
-                log.error(e.getMessage(), e);
-            }
-        } finally {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
+        bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
+        bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
+        bootstrap.childOption(ChannelOption.SO_RCVBUF, 1048576);
+        bootstrap.childOption(ChannelOption.SO_SNDBUF, 1048576);
+//            Channel ch = null;
+        try {
+
+//                ch = bootstrap.bind(nettyConfig.getPort()).sync().channel();
+            ChannelFuture channelFuture =
+                    bootstrap.bind(new InetSocketAddress(nettyConfig.getHost(), nettyConfig.getPort())).sync();
+
+//                allChannels.add(ch);
+            SERVER_STATE = Constants.STATE_STARTED;
+            log.info("Netty Listener starting on port " + nettyConfig.getPort());
+//                ch.closeFuture().sync();
+//                allChannels.close().awaitUninterruptibly();
+        } catch (InterruptedException e) {
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -169,7 +169,7 @@ public class NettyListener extends CarbonTransport {
         private SslConfig sslConfig;
 
         public Config(String id) {
-            if(id == null) {
+            if (id == null) {
                 throw new IllegalArgumentException("Netty transport ID is null");
             }
             this.id = id;

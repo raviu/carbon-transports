@@ -30,7 +30,6 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.controller.POCController;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.transports.CarbonTransport;
 
@@ -39,26 +38,15 @@ import java.io.File;
 public class NettyListener extends CarbonTransport {
     private static Logger log = Logger.getLogger(NettyListener.class);
 
-    private static String id = "HTTP-netty";
-    private int port;
     private String SERVER_STATE = Constants.STATE_STOPPED;
 
     private ServerBootstrap bootstrap;
-    private EventLoopGroup bossGroup =
-            new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
-                    "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
-    private EventLoopGroup workerGroup =
-            new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
-                    "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors() * 2))));
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
     private static ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     private ChannelInitializer defaultInitializer;
     private Config nettyConfig;
-
-    public NettyListener(String id, int port) {
-        super(id);
-        this.port = port;
-    }
 
     public NettyListener(Config nettyConfig) {
         super(nettyConfig.getId());
@@ -74,10 +62,10 @@ public class NettyListener extends CarbonTransport {
     }
 
     public void start() {
-        log.info("### Netty Boss Count: " + Integer.valueOf(POCController.props.getProperty(
+        /*log.info("### Netty Boss Count: " + Integer.valueOf(POCController.props.getProperty(
                 "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
         log.info("### Netty Worker Count: " + Integer.valueOf(POCController.props.getProperty(
-                "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));
+                "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));*/
 
         startTransport();
     }
@@ -99,10 +87,10 @@ public class NettyListener extends CarbonTransport {
             bootstrap.childOption(ChannelOption.SO_SNDBUF, 1048576);
             Channel ch = null;
             try {
-                ch = bootstrap.bind(port).sync().channel();
+                ch = bootstrap.bind(nettyConfig.getPort()).sync().channel();
                 allChannels.add(ch);
                 SERVER_STATE = Constants.STATE_STARTED;
-                log.info("Listener starting on port " + port);
+                log.info("Listener starting on port " + nettyConfig.getPort());
                 ch.closeFuture().sync();
                 allChannels.close().awaitUninterruptibly();
             } catch (InterruptedException e) {
@@ -125,25 +113,23 @@ public class NettyListener extends CarbonTransport {
     @Override
     public void stop() {
         SERVER_STATE = Constants.STATE_TRANSITION;
-        log.info("Stopping server on port " + port);
+        log.info("Stopping Netty transport " + id + " on port " + nettyConfig.getPort());
         shutdownEventLoops();
     }
 
     @Override
     public void beginMaintenance() {
         SERVER_STATE = Constants.STATE_TRANSITION;
-        log.info("Stopping server on port " + port + " for maintenance");
+        log.info("Putting Netty transport " + id + " on port " + nettyConfig.getPort() + " into maintenance mode");
         shutdownEventLoops();
     }
 
     @Override
     public void endMaintenance() {
         SERVER_STATE = Constants.STATE_TRANSITION;
-        log.info("Ending maintenance mode for server running on port " + port);
-        bossGroup = new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
-                "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
-        workerGroup = new NioEventLoopGroup(Integer.valueOf(POCController.props.getProperty(
-                "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));
+        log.info("Ending maintenance mode for Netty transport " + id + " running on port " + nettyConfig.getPort());
+        bossGroup = new NioEventLoopGroup(nettyConfig.getBossThreads());
+        workerGroup = new NioEventLoopGroup(nettyConfig.getWorkerThreads());
         startTransport();
     }
 
@@ -160,7 +146,7 @@ public class NettyListener extends CarbonTransport {
                 f.addListener(new GenericFutureListener<Future<Object>>() {
                     @Override
                     public void operationComplete(Future<Object> future) throws Exception {
-                        log.info("Server on port " + port + " stopped successfully");
+                        log.info("Netty transport " + id + " on port " + nettyConfig.getPort() + " stopped successfully");
                         SERVER_STATE = Constants.STATE_STOPPED;
                     }
                 });

@@ -53,8 +53,8 @@ public class POCController {
                 System.exit(0);
             }
 
-            NettyListener nettyListener =
-                    new NettyListener(ID, Integer.valueOf(props.getProperty("port", "9090")));
+            NettyListener.Config nettyConfig = new NettyListener.Config("netty-gw").setPort(9090);
+            NettyListener nettyListener = new NettyListener(nettyConfig);
             nettyListener.setDefaultInitializer(new SourceInitializer(engine));
             nettyListener.start();
         } else {

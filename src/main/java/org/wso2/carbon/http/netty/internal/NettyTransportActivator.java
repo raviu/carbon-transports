@@ -122,7 +122,8 @@ public class NettyTransportActivator implements BundleActivator {
             }
         };
 
-        String nettyTransportsXML = "repository" + File.separator + "conf" + File.separator + "netty-transports.xml";
+        String nettyTransportsXML = "repository" + File.separator + "conf" + File.separator +
+                "transports" + File.separator + "netty-transports.xml";
         try {
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser saxParser = factory.newSAXParser();

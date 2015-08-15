@@ -90,7 +90,7 @@ public class NettyListener extends CarbonTransport {
                 ch = bootstrap.bind(nettyConfig.getPort()).sync().channel();
                 allChannels.add(ch);
                 SERVER_STATE = Constants.STATE_STARTED;
-                log.info("Listener starting on port " + nettyConfig.getPort());
+                log.info("Netty Listener starting on port " + nettyConfig.getPort());
                 ch.closeFuture().sync();
                 allChannels.close().awaitUninterruptibly();
             } catch (InterruptedException e) {

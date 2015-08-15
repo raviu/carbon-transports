@@ -20,13 +20,15 @@ package org.wso2.carbon.http.netty.listener;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
 
 /**
  * TODO: class level comment
  */
 public class NettyServerInitializer  extends ChannelInitializer<SocketChannel> {
-
+    private static final Log log = LogFactory.getLog(NettyServerInitializer.class);
     private String transportID;
 
     public NettyServerInitializer(String transportID) {
@@ -41,6 +43,9 @@ public class NettyServerInitializer  extends ChannelInitializer<SocketChannel> {
         //TODO: Lookup the OSGi services which implement <CarbonNettyServerInitializer>
         CarbonNettyServerInitializer initializer = NettyTransportDataHolder.getInstance().getChannelInitializer(transportID);
         if (initializer != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Calling CarbonNettyServerInitializer OSGi service " + initializer);
+            }
             initializer.initChannel(socketChannel);
         }
         //TODO: the OSGi service above will add the rest of the handlers to the pipeline

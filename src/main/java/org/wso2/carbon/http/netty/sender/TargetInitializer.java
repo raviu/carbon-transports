@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.http.netty.sender;
 
+import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
@@ -36,10 +37,12 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
 
     private Engine engine;
     private volatile ChannelHandlerContext ctx;
+    private RingBuffer ringBuffer;
 
-    public TargetInitializer(Engine engine, ChannelHandlerContext ctx) {
+    public TargetInitializer(Engine engine, ChannelHandlerContext ctx , RingBuffer disruptor) {
         this.engine = engine;
         this.ctx = ctx;
+        this.ringBuffer = disruptor;
     }
 
     @Override
@@ -49,6 +52,6 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
         p.addLast("decoder", new HttpResponseDecoder());
         p.addLast("encoder", new HttpRequestEncoder());
 //        p.addLast("aggegator", new HttpObjectAggregator(512 * 1024));
-        p.addLast(HANDLER, new TargetHandler(engine, ctx, null ));
+        p.addLast(HANDLER, new TargetHandler(engine, ctx, ringBuffer ));
     }
 }

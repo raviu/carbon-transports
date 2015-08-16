@@ -56,14 +56,14 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        bootstrap = new Bootstrap();
-        bootstrap.group(ctx.channel().eventLoop())
-                .channel(ctx.channel().getClass())
-                .handler(new TargetInitializer(engine, ctx));
-        bootstrap.option(ChannelOption.TCP_NODELAY, true);
-        bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
-        bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
-        bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
+//        bootstrap = new Bootstrap();
+//      //  bootstrap.group(ctx.channel().eventLoop())
+//                .channel(ctx.channel().getClass())
+//                .handler(new TargetInitializer(engine, ctx));
+//        bootstrap.option(ChannelOption.TCP_NODELAY, true);
+//        bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
+//        bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
+//        bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
     }
 
     @Override

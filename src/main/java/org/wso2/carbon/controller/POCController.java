@@ -59,14 +59,14 @@ public class POCController {
             channelInitializers.put("SourceInitializer", new SourceInitializer(engine));
 
             NettyListener nettyListener =
-                       new NettyListener(ID, Integer.valueOf(props.getProperty("port", "9090")));
-            DisruptorFactory.createDisruptor(Integer.valueOf(props.getProperty("disruptorbufferSize", "1024")));
-            //   DisruptorFactory.populateDisruptors(100);
+                       new NettyListener(ID, Integer.valueOf(props.getProperty("port", "9095")));
+            DisruptorFactory.createDisruptor(Integer.valueOf(props.getProperty("disruptorbufferSize", "1024")),Integer.valueOf(props.getProperty("noOfDisurptors", "1")));
+            //   DisruptorFactory.populateDisruptors(8);
             nettyListener.start(channelInitializers);
 //        } else {
 //            showUsage();
 //        }
-        }
+      }
     }
     private static void showUsage() {
         System.out.println("\n\n");

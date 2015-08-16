@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.http.netty.listener.disruptor;
 
+import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -39,7 +40,9 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private Engine engine;
     private Bootstrap bootstrap;
     private Channel channel;
-    private Disruptor disruptor;
+    private RingBuffer disruptor;
+
+    private int count=0;
 
 
     public SourceHandler(Engine engine , Disruptor disruptor) {
@@ -49,11 +52,12 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
+        disruptor = DisruptorFactory.getDisruptorFromMap();
        final Channel inboundChannel =  ctx.channel();
         bootstrap = new Bootstrap();
         bootstrap.group(ctx.channel().eventLoop())
                    .channel(ctx.channel().getClass())
-                   .handler(new TargetInitializer(engine, ctx));
+                   .handler(new TargetInitializer(engine, ctx,disruptor));
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
@@ -67,13 +71,14 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
                     channel= outboundChannel;
+                   // disruptor=DisruptorFactory.getDisruptorFromMap();
                     ctx.read();
                 } else {
                     outboundChannel.close();
                 }
             }
         });
-        disruptor = DisruptorFactory.getDisruptor(20);
+    //    disruptor = DisruptorFactory.getDisruptor();
       //  disruptor.start();
     }
 
@@ -96,11 +101,19 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
                              Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));
             cMsg.setStatus(Constants.HEADERS);
             cMsg.setEvent(msg);
+//            long   sequence =  disruptor.next();
+//             CarbonDisruptorEvent carbonDisruptorEvent = (CarbonDisruptorEvent)disruptor.get(sequence);
+//            carbonDisruptorEvent.setEvent(cMsg);
+//            disruptor.publish(sequence);
             disruptor.publishEvent(new CarbonEventPublisher(cMsg));
         } else {
             cMsg.setEvent(msg);
             cMsg.setStatus(Constants.BODY);
-            disruptor.publishEvent(new CarbonEventPublisher(cMsg));
+           disruptor.publishEvent(new CarbonEventPublisher(cMsg));
+//            long   sequence =  disruptor.next();
+//            CarbonDisruptorEvent carbonDisruptorEvent = (CarbonDisruptorEvent)disruptor.get(sequence);
+//            carbonDisruptorEvent.setEvent(cMsg);
+//            disruptor.publish(sequence);
 
         }
         ctx.channel().read();
@@ -128,4 +141,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         this.channel = channel;
     }
 
+    public RingBuffer getDisruptor(){
+        return  disruptor;
+    }
 }

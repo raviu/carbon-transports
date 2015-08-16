@@ -33,50 +33,62 @@ public class DisruptorFactory {
 
     private static  Disruptor disruptor;
 
-    private static List<Disruptor> disruptorMap = new ArrayList<Disruptor>();
+    private static List<RingBuffer> disruptorMap = new ArrayList<RingBuffer>();
+    private static int noOfDisruptors;
+    private static int index=1;
 
-    public static Disruptor getDisruptor(int threadPoolSize) {
+    public static Disruptor getDisruptor() {
         return disruptor;
     }
-    public static Disruptor createDisruptor(int bufferSize) {
+    public static void createDisruptor(int bufferSize , int noDisruptors) {
+        noOfDisruptors=noDisruptors;
+        for(int i=0; i < noDisruptors;i++) {
+            ExecutorService executorService = Executors.newFixedThreadPool(1);
+            disruptor = new Disruptor<CarbonDisruptorEvent>(
+                       CarbonDisruptorEvent.EVENT_FACTORY,
+                       bufferSize,
+                       executorService,
+                       ProducerType.MULTI,
+                       PhasedBackoffWaitStrategy.withLiteLock(1, 4, TimeUnit.SECONDS));
+            ExceptionHandler exh = new GenericExceptionHandler();
+            EventHandler eventHandler = new CarbonDisruptorEventHandler();
+            disruptor.handleEventsWith(eventHandler);
+            disruptor.handleExceptionsFor(eventHandler).with(exh);
+            disruptorMap.add(disruptor.start());
 
-        ExecutorService executorService = Executors.newFixedThreadPool(1);
-       disruptor = new Disruptor<CarbonDisruptorEvent>(
-                   CarbonDisruptorEvent.EVENT_FACTORY,
-                   bufferSize,
-                   executorService,
-                   ProducerType.MULTI,
-                   PhasedBackoffWaitStrategy.withLiteLock(1, 4, TimeUnit.SECONDS));
-        ExceptionHandler exh = new GenericExceptionHandler();
-        EventHandler eventHandler = new CarbonDisruptorEventHandler();
-        disruptor.handleEventsWith(eventHandler);
-        disruptor.handleExceptionsFor(eventHandler).with(exh);
-        disruptor.start();
-        return disruptor;
+        }
     }
 
     public static void populateDisruptors(int concurrency) {
 
-       for(int i=0;i<2*concurrency;i++) {
+       for(int i=0;i<concurrency;i++) {
            ExecutorService executorService = Executors.newFixedThreadPool(1);
            disruptor = new Disruptor<CarbonDisruptorEvent>(
                       CarbonDisruptorEvent.EVENT_FACTORY,
-                      4096,
+                      1024,
                       executorService,
                       ProducerType.SINGLE,
-                      PhasedBackoffWaitStrategy.withLock(1, 4, TimeUnit.SECONDS));
+                      PhasedBackoffWaitStrategy.withLiteLock(1, 4, TimeUnit.SECONDS));
            ExceptionHandler exh = new GenericExceptionHandler();
            EventHandler eventHandler = new CarbonDisruptorEventHandler();
            disruptor.handleEventsWith(eventHandler);
            disruptor.handleExceptionsFor(eventHandler).with(exh);
-           disruptor.start();
-           disruptorMap.add(disruptor);
+           disruptorMap.add(disruptor.start());
        }
 
     }
 
-    public static Disruptor  getDisruptorFromMap(){
-        return disruptorMap.remove(0);
+    public static RingBuffer  getDisruptorFromMap(int index){
+        return disruptorMap.get(index);
     }
 
+    public static int getNoOfDisruptors(){
+        return noOfDisruptors;
+    }
+
+    public synchronized static RingBuffer  getDisruptorFromMap(){
+            int ind = index % noOfDisruptors;
+            index++;
+        return disruptorMap.get(ind);
+    }
 }

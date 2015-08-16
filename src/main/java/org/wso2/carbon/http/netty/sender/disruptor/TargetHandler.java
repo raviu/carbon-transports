@@ -17,6 +17,7 @@
 package org.wso2.carbon.http.netty.sender.disruptor;
 
 
+import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -26,6 +27,7 @@ import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.disruptor.DisruptorFactory;
+import org.wso2.carbon.disruptor.event.CarbonDisruptorEvent;
 import org.wso2.carbon.disruptor.publisher.CarbonEventPublisher;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.Util;
@@ -37,18 +39,19 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
     private Engine engine;
     private ChannelHandlerContext inboundChannelHandlerContext;
-    private Disruptor disruptor;
+    private RingBuffer disruptor;
+    private int count=0;
 
-    public TargetHandler(Engine engine, ChannelHandlerContext inboundChannelHandlerContext , Disruptor disruptor) {
+    public TargetHandler(Engine engine, ChannelHandlerContext inboundChannelHandlerContext , RingBuffer disruptor) {
         this.engine = engine;
         this.inboundChannelHandlerContext = inboundChannelHandlerContext;
-       // this.disruptor = disruptor;
+        this.disruptor = disruptor;
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-       disruptor = DisruptorFactory.getDisruptor(20);
+      // disruptor = DisruptorFactory.getDisruptorFromMap();
       //  disruptor.start();
     }
 
@@ -74,11 +77,19 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             cMsg.setEvent(msg);
             cMsg.setProperty(Constants.PROTOCOL_NAME,Constants.ENGINE,engine);
             disruptor.publishEvent(new CarbonEventPublisher(cMsg));
+//            long   sequence =  disruptor.next();
+//            CarbonDisruptorEvent carbonDisruptorEvent = (CarbonDisruptorEvent)disruptor.get(sequence);
+//            carbonDisruptorEvent.setEvent(cMsg);
+//            disruptor.publish(sequence);
         } else {
             cMsg.setEvent(msg);
             cMsg.setStatus(Constants.BODY);
             cMsg.setProperty(Constants.PROTOCOL_NAME,Constants.ENGINE,engine);
             disruptor.publishEvent(new CarbonEventPublisher(cMsg));
+//            long   sequence =  disruptor.next();
+//            CarbonDisruptorEvent carbonDisruptorEvent = (CarbonDisruptorEvent)disruptor.get(sequence);
+//            carbonDisruptorEvent.setEvent(cMsg);
+//            disruptor.publish(sequence);
         }
     }
 

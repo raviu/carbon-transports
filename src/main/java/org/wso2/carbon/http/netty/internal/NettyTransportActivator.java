@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.http.netty.listener.NettyListener;
+import org.wso2.carbon.http.netty.listener.ssl.SSLConfig;
 import org.wso2.carbon.transports.CarbonTransport;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -103,12 +104,12 @@ public class NettyTransportActivator implements BundleActivator {
                         if (!keyStore.exists()) {
                             throw new IllegalArgumentException("KeyStore File " + keystoreFile + " not found");
                         }
-                        NettyListener.Config.SslConfig sslConfig =
-                                new NettyListener.Config.SslConfig(keyStore, keystorePass).setCertPass(certPass);
+                        SSLConfig sslConfig =
+                                new SSLConfig(keyStore, keystorePass).setCertPass(certPass);
                         if (trustStoreFile != null) {
                             File trustStore = new File(trustStoreFile);
                             if (!trustStore.exists()) {
-                                throw new IllegalArgumentException("TrustStore File " + trustStoreFile + " not found");
+                                throw new IllegalArgumentException("trustStore File " + trustStoreFile + " not found");
                             }
                             if (trustStorePass == null) {
                                 throw new IllegalArgumentException("trustStorePass is not defined for HTTPS scheme");

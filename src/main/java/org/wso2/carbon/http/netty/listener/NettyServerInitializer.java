@@ -20,25 +20,38 @@ package org.wso2.carbon.http.netty.listener;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.ssl.SslHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.http.netty.internal.NettyTransportDataHolder;
+import org.wso2.carbon.http.netty.listener.ssl.SSLConfig;
+import org.wso2.carbon.http.netty.listener.ssl.SSLHandlerFactory;
 
 /**
- * TODO: class level comment
+ * Handles initialization of the Netty Channel pipeline
  */
 public class NettyServerInitializer  extends ChannelInitializer<SocketChannel> {
     private static final Log log = LogFactory.getLog(NettyServerInitializer.class);
     private String transportID;
+    private SSLConfig sslConfig;
 
     public NettyServerInitializer(String transportID) {
         this.transportID = transportID;
     }
 
+    public void setSslConfig(SSLConfig sslConfig) {
+        this.sslConfig = sslConfig;
+    }
+
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
-        //TODO: Add the generic handlers to the pipeline
+
+        // Add the generic handlers to the pipeline
         // e.g. SSL handler
+        if (sslConfig != null) {
+            SslHandler sslHandler = new SSLHandlerFactory(sslConfig).create();
+            socketChannel.pipeline().addLast("ssl", sslHandler);
+        }
 
         // Add the rest of the handlers to the pipeline
         CarbonNettyServerInitializer initializer = NettyTransportDataHolder.getInstance().getChannelInitializer(transportID);

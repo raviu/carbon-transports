@@ -31,6 +31,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.http.netty.common.Constants;
+import org.wso2.carbon.http.netty.listener.ssl.SSLConfig;
 import org.wso2.carbon.transports.CarbonTransport;
 
 import java.io.File;
@@ -106,7 +107,9 @@ public class NettyListener extends CarbonTransport {
         if (defaultInitializer != null) {
             bootstrap.childHandler(defaultInitializer);
         } else {
-            bootstrap.childHandler(new NettyServerInitializer(id));
+            NettyServerInitializer handler = new NettyServerInitializer(id);
+            handler.setSslConfig(nettyConfig.getSslConfig());
+            bootstrap.childHandler(handler);
         }
     }
 
@@ -166,7 +169,7 @@ public class NettyListener extends CarbonTransport {
         private int bossThreads = Runtime.getRuntime().availableProcessors();
         private int workerThreads = Runtime.getRuntime().availableProcessors() * 2;
         private int execThreads = 50;
-        private SslConfig sslConfig;
+        private SSLConfig sslConfig;
 
         public Config(String id) {
             if (id == null) {
@@ -224,61 +227,13 @@ public class NettyListener extends CarbonTransport {
             return this;
         }
 
-        public Config enableSsl(SslConfig sslConfig) {
+        public Config enableSsl(SSLConfig sslConfig) {
             this.sslConfig = sslConfig;
             return this;
         }
 
-        public SslConfig getSslConfig() {
+        public SSLConfig getSslConfig() {
             return sslConfig;
-        }
-
-        public static class SslConfig {
-            private File keyStore;
-            private String keyStorePass;
-            private String certPass;
-            private File trustStore;
-            private String trustStorePass;
-
-            public SslConfig(File keyStore, String keyStorePass) {
-                this.keyStore = keyStore;
-                this.keyStorePass = keyStorePass;
-            }
-
-            public String getCertPass() {
-                return certPass;
-            }
-
-            public SslConfig setCertPass(String certPass) {
-                this.certPass = certPass;
-                return this;
-            }
-
-            public File getTrustStore() {
-                return trustStore;
-            }
-
-            public SslConfig setTrustStore(File trustStore) {
-                this.trustStore = trustStore;
-                return this;
-            }
-
-            public String getTrustStorePass() {
-                return trustStorePass;
-            }
-
-            public SslConfig setTrustStorePass(String trustStorePass) {
-                this.trustStorePass = trustStorePass;
-                return this;
-            }
-
-            public File getKeyStore() {
-                return keyStore;
-            }
-
-            public String getKeyStorePass() {
-                return keyStorePass;
-            }
         }
     }
 

@@ -48,7 +48,7 @@ public class NettyTransportServiceComponent {
     @Reference(
             name = "netty-channel.initializer",
             service = CarbonNettyServerInitializer.class,
-            cardinality = ReferenceCardinality.OPTIONAL,
+            cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "removeNettyChannelInitializer"
     )

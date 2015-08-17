@@ -55,8 +55,6 @@ public class NettyListener extends CarbonTransport {
         this.nettyConfig = nettyConfig;
         bossGroup = new NioEventLoopGroup(nettyConfig.getBossThreads());
         workerGroup = new NioEventLoopGroup(nettyConfig.getWorkerThreads());
-
-        //TODO: setup SSL
     }
 
     public void setDefaultInitializer(ChannelInitializer defaultInitializer) {

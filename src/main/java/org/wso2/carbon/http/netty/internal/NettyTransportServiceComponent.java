@@ -18,8 +18,8 @@
  */
 package org.wso2.carbon.http.netty.internal;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -35,15 +35,11 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class NettyTransportServiceComponent {
 
+    private static final Log log = LogFactory.getLog(NettyTransportServiceComponent.class);
+
     private static final String CHANNEL_ID_KEY = "channel.id";
 
-    private BundleContext bundleContext;
     private NettyTransportDataHolder dataHolder = NettyTransportDataHolder.getInstance();
-
-    @Activate
-    protected void start(BundleContext bundleContext) {
-        this.bundleContext = bundleContext;
-    }
 
     @Reference(
             name = "netty-channel.initializer",
@@ -61,7 +57,7 @@ public class NettyTransportServiceComponent {
                 throw new IllegalArgumentException(CHANNEL_ID_KEY + " not specified for ChannelInitializer " + initializer);
             }
         } catch (Throwable e) {
-            e.printStackTrace();  //TODO: log
+            log.error("Cannot add CarbonNettyServerInitializer", e);
         }
     }
 

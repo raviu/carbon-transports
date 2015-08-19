@@ -71,7 +71,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
                     Constants.CHNL_HNDLR_CTX, inboundChannelHandlerContext);
             cMsg.setPipe(new Pipe(Constants.TARGET_PIPE));
 
-            CarbonCallback callback = sender.getCallback(ctx.channel());
+            CarbonCallback callback = sender.consumeCallback(ctx.channel());
             WorkerPool.submitJob(new Worker(sender.getEngine(), cMsg, callback));
         } else if (msg instanceof HttpContent) {
             HTTPContentChunk chunk;

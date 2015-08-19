@@ -51,6 +51,12 @@ public abstract class TransportSender<T> {
         return callbackMap.get(obj);
     }
 
+    public CarbonCallback consumeCallback(T obj) {
+        CarbonCallback c = getCallback(obj);
+        removeCallback(obj);
+        return c;
+    }
+
     public void putCallback(T obj, CarbonCallback callback) {
         callbackMap.put(obj, callback);
     }

@@ -11,30 +11,6 @@
     <name>Carbon Netty HTTP Transport</name>
     <description>Carbon HTTP Transport based on Netty</description>
 
-    <repositories>
-        <repository>
-            <id>wso2-nexus</id>
-            <name>WSO2 internal Repository</name>
-            <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-                <checksumPolicy>ignore</checksumPolicy>
-            </releases>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>wso2-maven2-repository-1</id>
-            <url>http://dist.wso2.org/maven2</url>
-        </pluginRepository>
-        <pluginRepository>
-            <id>wso2-maven2-repository-2</id>
-            <url>http://dist.wso2.org/snapshots/maven2</url>
-        </pluginRepository>
-    </pluginRepositories>
-
     <dependencies>
         <dependency>
             <groupId>org.eclipse.osgi</groupId>
@@ -77,7 +53,37 @@
             <version>3.8.1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-core</artifactId>
+            <version>2.15.2</version>
+        </dependency>
+
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>wso2-nexus</id>
+            <name>WSO2 internal Repository</name>
+            <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>wso2-maven2-repository-1</id>
+            <url>http://dist.wso2.org/maven2</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>wso2-maven2-repository-2</id>
+            <url>http://dist.wso2.org/snapshots/maven2</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <build>
         <plugins>
@@ -121,7 +127,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.wso2.carbon.controller.POCController</mainClass>
+                            <mainClass>org.wso2.carbon.mediation.camel.Test</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -135,7 +141,7 @@
     <properties>
         <equinox.osgi.version>3.9.1.v20130814-1242</equinox.osgi.version>
         <equinox.osgi.services.version>3.3.100.v20130513-1956</equinox.osgi.services.version>
-        <org.wso2.carbon.core.version>5.0.0-SNAPSHOT</org.wso2.carbon.core.version>
+        <org.wso2.carbon.core.version>5.0.0-m4</org.wso2.carbon.core.version>
         <osgi.framework.import.version.range>[1.7.0, 1.8.0)</osgi.framework.import.version.range>
         <osgi.service.tracker.import.version.range>[1.5.1, 1.6.0)</osgi.service.tracker.import.version.range>
     </properties>

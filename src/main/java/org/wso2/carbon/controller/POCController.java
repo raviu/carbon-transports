@@ -18,6 +18,7 @@
 package org.wso2.carbon.controller;
 
 import io.netty.channel.ChannelInitializer;
+import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.http.netty.listener.NettyListener;
 import org.wso2.carbon.http.netty.listener.SourceInitializer;
@@ -25,7 +26,9 @@ import org.wso2.carbon.http.netty.sender.Sender;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class POCController {
 
@@ -39,6 +42,9 @@ public class POCController {
         if (args.length == 2) {
             if (args[0].equals("jaxrs")) {
                 engine = new POCJaxRSEngine(sender);
+            } else if (args[0].equals("camel")) {
+                engine = new CamelMediationEngine(sender);
+                engine.init();
             }
 
             File propFile = new File(args[1]);
@@ -51,7 +57,7 @@ public class POCController {
                 System.exit(0);
             }
 
-            Map<String, ChannelInitializer> channelInitializers = new HashMap<>();
+            Map<String, ChannelInitializer> channelInitializers = new HashMap<String, ChannelInitializer>();
             channelInitializers.put("SourceInitializer", new SourceInitializer(engine));
 
             NettyListener nettyListener =
@@ -60,6 +66,29 @@ public class POCController {
         } else {
             showUsage();
         }
+    }
+
+    public Engine startPOCController(){
+        Sender sender = new Sender();
+        Engine engine = new CamelMediationEngine(sender);
+
+            File propFile = new File("sample.properties");
+            try {
+                FileInputStream fis = new FileInputStream(propFile);
+                props.load(fis);
+            } catch (Exception e) {
+                showUsage();
+                e.printStackTrace();
+                System.exit(0);
+            }
+
+            Map<String, ChannelInitializer> channelInitializers = new HashMap<String, ChannelInitializer>();
+            channelInitializers.put("SourceInitializer", new SourceInitializer(engine));
+
+            NettyListener nettyListener =
+                    new NettyListener(ID, Integer.valueOf(props.getProperty("port", "9090")));
+            nettyListener.start(channelInitializers);
+        return engine;
     }
 
     private static void showUsage() {

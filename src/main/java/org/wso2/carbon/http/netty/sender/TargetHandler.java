@@ -24,8 +24,9 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
-import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.HTTPContentChunk;
@@ -39,12 +40,12 @@ import java.net.InetSocketAddress;
 public class TargetHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(TargetHandler.class);
 
-    private Engine engine;
+    private TransportSender sender;
     private ChannelHandlerContext inboundChannelHandlerContext;
     private CarbonMessage cMsg;
 
-    public TargetHandler(Engine engine, ChannelHandlerContext inboundChannelHandlerContext) {
-        this.engine = engine;
+    public TargetHandler(TransportSender sender, ChannelHandlerContext inboundChannelHandlerContext) {
+        this.sender = sender;
         this.inboundChannelHandlerContext = inboundChannelHandlerContext;
     }
 
@@ -70,7 +71,8 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
                     Constants.CHNL_HNDLR_CTX, inboundChannelHandlerContext);
             cMsg.setPipe(new Pipe(Constants.TARGET_PIPE));
 
-            WorkerPool.submitJob(new Worker(engine, cMsg));
+            CarbonCallback callback = sender.getCallback(ctx.channel());
+            WorkerPool.submitJob(new Worker(sender.getEngine(), cMsg, callback));
         } else if (msg instanceof HttpContent) {
             HTTPContentChunk chunk;
             if (cMsg != null) {

@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.controller;
 
-import io.netty.channel.ChannelInitializer;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.http.netty.listener.NettyListener;
 import org.wso2.carbon.http.netty.listener.SourceInitializer;
@@ -25,8 +24,6 @@ import org.wso2.carbon.http.netty.sender.Sender;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 public class POCController {

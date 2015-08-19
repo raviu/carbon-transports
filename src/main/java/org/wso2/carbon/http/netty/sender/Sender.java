@@ -22,17 +22,13 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultHttpRequest;
-import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Pipe;
 import org.wso2.carbon.api.TransportSender;
@@ -42,9 +38,6 @@ import org.wso2.carbon.http.netty.common.Util;
 import org.wso2.carbon.http.netty.listener.SourceHandler;
 
 import java.net.InetSocketAddress;
-import java.util.Map;
-
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 
 public class Sender extends TransportSender {
@@ -58,11 +51,11 @@ public class Sender extends TransportSender {
         return true;
     }
 
-    public boolean send(CarbonMessage msg) {
+    public boolean send(CarbonMessage msg, CarbonCallback callback) {
         final ChannelHandlerContext inboundCtx = (ChannelHandlerContext)
                 msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
 
-        final HttpRequest httpRequest = createHttpRequest(msg);
+        final HttpRequest httpRequest = Util.createHttpRequest(msg);
         final Pipe pipe = msg.getPipe();
 
         final SourceHandler srcHandler = (SourceHandler) msg.getProperty(
@@ -75,6 +68,7 @@ public class Sender extends TransportSender {
         if (srcHandler.getChannelFuture() == null) {
             ChannelFuture future = bootstrap.connect(address);
             final Channel outboundChannel = future.channel();
+            putCallback(outboundChannel, callback);
 
             future.addListener(new ChannelFutureListener() {
 
@@ -103,6 +97,7 @@ public class Sender extends TransportSender {
 
         } else {
             ChannelFuture future = srcHandler.getChannelFuture();
+            putCallback(srcHandler.getChannel(), callback);
             if (future.isSuccess() && srcHandler.getChannel().isActive()) {
                 srcHandler.getChannel().write(httpRequest);
                 while (true) {
@@ -118,6 +113,7 @@ public class Sender extends TransportSender {
             } else {
                 final ChannelFuture futuretwo = bootstrap.connect(address);
                 final Channel outboundChannel = futuretwo.channel();
+                putCallback(outboundChannel, callback);
                 futuretwo.addListener(new ChannelFutureListener() {
 
                     public void operationComplete(ChannelFuture future) throws Exception {
@@ -150,7 +146,7 @@ public class Sender extends TransportSender {
         final ChannelHandlerContext inboundChCtx = (ChannelHandlerContext)
                 msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
         final Pipe pipe = msg.getPipe();
-        final HttpResponse response = createHttpResponse(msg);
+        final HttpResponse response = Util.createHttpResponse(msg);
 
         inboundChCtx.write(response);
         while (true) {
@@ -167,44 +163,4 @@ public class Sender extends TransportSender {
         }
         return false;
     }
-
-    private HttpRequest createHttpRequest(CarbonMessage msg) {
-
-        HttpMethod httpMethod = new HttpMethod((String) msg.getProperty(Constants.PROTOCOL_NAME,
-                Constants.HTTP_METHOD));
-
-        HttpVersion httpVersion = new HttpVersion((String) msg.getProperty(Constants.PROTOCOL_NAME,
-                Constants.HTTP_VERSION), true);
-
-        HttpRequest outgoingRequest =
-                new DefaultHttpRequest(httpVersion, httpMethod, msg.getURI(), false);
-
-        Map headers = (Map) msg.getProperty(Constants.PROTOCOL_NAME,
-                Constants.TRANSPORT_HEADERS);
-
-        Util.setHeaders(outgoingRequest, headers);
-
-        return outgoingRequest;
-    }
-
-    private HttpResponse createHttpResponse(CarbonMessage msg) {
-        HttpVersion httpVersion = new HttpVersion(Util.getStringValue(msg,
-                Constants.HTTP_VERSION, HTTP_1_1.text()), true);
-
-        int statusCode = (Integer) Util.getIntValue(msg, Constants.HTTP_STATUS_CODE, 200);
-
-        HttpResponseStatus httpResponseStatus = new HttpResponseStatus(statusCode,
-                HttpResponseStatus.valueOf(statusCode).reasonPhrase());
-
-        DefaultHttpResponse outgoingResponse = new DefaultHttpResponse(httpVersion,
-                httpResponseStatus, false);
-
-        Map<String, String> headerMap = (Map<String, String>) msg.getProperty(
-                Constants.PROTOCOL_NAME, Constants.TRANSPORT_HEADERS);
-
-        Util.setHeaders(outgoingResponse, headerMap);
-
-        return outgoingResponse;
-    }
-
 }

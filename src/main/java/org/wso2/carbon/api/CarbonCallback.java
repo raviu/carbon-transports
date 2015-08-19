@@ -17,12 +17,9 @@
  */
 package org.wso2.carbon.api;
 
-public interface Engine {
+public interface CarbonCallback {
 
-    boolean init(TransportSender sender);
-
-    boolean receive(CarbonMessage msg, CarbonCallback callback);
-
-    TransportSender getSender();
+    void done(CarbonMessage cMsg);
 
 }
+

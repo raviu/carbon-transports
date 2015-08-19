@@ -24,18 +24,18 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequestEncoder;
 import io.netty.handler.codec.http.HttpResponseDecoder;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.api.TransportSender;
 
 public class TargetInitializer extends ChannelInitializer<SocketChannel> {
     private static Logger log = Logger.getLogger(TargetInitializer.class);
 
     protected static final String HANDLER = "handler";
 
-    private Engine engine;
+    private TransportSender sender;
     private volatile ChannelHandlerContext ctx;
 
-    public TargetInitializer(Engine engine, ChannelHandlerContext ctx) {
-        this.engine = engine;
+    public TargetInitializer(TransportSender sender, ChannelHandlerContext ctx) {
+        this.sender = sender;
         this.ctx = ctx;
     }
 
@@ -45,6 +45,6 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
         p.addLast("decoder", new HttpResponseDecoder());
         p.addLast("encoder", new HttpRequestEncoder());
 //        p.addLast("aggegator", new HttpObjectAggregator(512 * 1024));
-        p.addLast(HANDLER, new TargetHandler(engine, ctx));
+        p.addLast(HANDLER, new TargetHandler(sender, ctx));
     }
 }

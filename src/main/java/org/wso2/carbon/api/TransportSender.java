@@ -17,7 +17,12 @@
  */
 package org.wso2.carbon.api;
 
-public abstract class TransportSender {
+import java.util.HashMap;
+import java.util.Map;
+
+public abstract class TransportSender<T> {
+
+    private Map<T, CarbonCallback> callbackMap = new HashMap<T, CarbonCallback>();
 
     private String protocol;
     private Engine engine;
@@ -40,7 +45,18 @@ public abstract class TransportSender {
 
     public abstract boolean init();
 
-    public abstract boolean send(CarbonMessage msg);
+    public abstract boolean send(CarbonMessage msg, CarbonCallback callback);
 
-    public abstract boolean sendBack(CarbonMessage msg);
+    public CarbonCallback getCallback(T obj) {
+        return callbackMap.get(obj);
+    }
+
+    public void putCallback(T obj, CarbonCallback callback) {
+        callbackMap.put(obj, callback);
+    }
+
+    public void removeCallback(T obj) {
+        callbackMap.remove(obj);
+    }
+
 }

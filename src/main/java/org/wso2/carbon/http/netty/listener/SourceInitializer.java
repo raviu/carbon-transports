@@ -22,7 +22,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
 

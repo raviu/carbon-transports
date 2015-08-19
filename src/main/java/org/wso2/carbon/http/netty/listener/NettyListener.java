@@ -34,7 +34,6 @@ import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.listener.ssl.SSLConfig;
 import org.wso2.carbon.transports.CarbonTransport;
 
-import java.io.File;
 import java.net.InetSocketAddress;
 
 public class NettyListener extends CarbonTransport {

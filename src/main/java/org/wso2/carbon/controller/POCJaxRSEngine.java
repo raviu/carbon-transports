@@ -17,15 +17,22 @@
  */
 package org.wso2.carbon.controller;
 
+import io.netty.channel.Channel;
 import org.apache.axiom.om.OMElement;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.controller.builder.XMLBuilder;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class POCJaxRSEngine implements org.wso2.carbon.api.Engine {
     private static Logger log = Logger.getLogger(POCJaxRSEngine.class);
+
+    Map<Channel, CarbonCallback> callbackMap = new HashMap<Channel, CarbonCallback>();
 
     private static String ENGINE_PROTOCOL = "http";
     private TransportSender sender;
@@ -35,11 +42,11 @@ public class POCJaxRSEngine implements org.wso2.carbon.api.Engine {
         sender.setEngine(this);
     }
 
-    public boolean init() {
+    public boolean init(TransportSender sender) {
         return true;
     }
 
-    public boolean receive(CarbonMessage msg) {
+    public boolean receive(CarbonMessage msg, CarbonCallback callback) {
 
         if (msg.getDirection() == CarbonMessageImpl.IN) {
             log.info(msg.getProperty(ENGINE_PROTOCOL, "HTTP_METHOD") + " "
@@ -63,4 +70,8 @@ public class POCJaxRSEngine implements org.wso2.carbon.api.Engine {
         return true;
     }
 
+    @Override
+    public TransportSender getSender() {
+        return this.sender;
+    }
 }

@@ -28,6 +28,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.common.CarbonMessageImpl;
@@ -59,7 +60,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         bootstrap = new Bootstrap();
         bootstrap.group(ctx.channel().eventLoop())
                 .channel(ctx.channel().getClass())
-                .handler(new TargetInitializer(engine, ctx));
+                .handler(new TargetInitializer(engine.getSender(), ctx));
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
@@ -86,7 +87,9 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
             cMsg.setPipe(new Pipe(Constants.SOURCE_PIPE));
 
-            WorkerPool.submitJob(new Worker(engine, cMsg));
+            CarbonCallback responseCallback = new ResponseCallback(ctx);
+
+            WorkerPool.submitJob(new Worker(engine, cMsg, responseCallback));
         } else if (msg instanceof HttpContent) {
             HTTPContentChunk chunk;
             if (cMsg != null) {

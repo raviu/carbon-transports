@@ -18,6 +18,7 @@
 package org.wso2.carbon.http.netty.common;
 
 import org.apache.log4j.Logger;
+import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
 
@@ -26,19 +27,21 @@ public class Worker implements Runnable {
 
     private Engine engine;
     private CarbonMessage msg;
+    private CarbonCallback callback;
 
-    public Worker(Engine engine, CarbonMessage msg) {
+    public Worker(Engine engine, CarbonMessage msg, CarbonCallback callback) {
         this.engine = engine;
         this.msg = msg;
+        this.callback = callback;
     }
 
     public void run() {
         Thread.currentThread().setName("WorkerThread");
-//        if (msg.getDirection() == CarbonMessage.IN) {
-//            msg.setId(UUID.randomUUID());
-//        }
-
-        engine.receive(msg);
+        if (msg.getDirection() == CarbonMessage.IN) {  // Message from SourceHandler
+            engine.receive(msg, callback);
+        } else {
+            callback.done(msg);
+        }
     }
 
 }

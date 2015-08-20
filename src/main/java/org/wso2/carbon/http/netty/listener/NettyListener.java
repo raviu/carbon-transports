@@ -161,7 +161,7 @@ public class NettyListener extends CarbonTransport {
     public static class Config {
 
         private String id;
-        private String host = "127.0.0.1";
+        private String host = "0.0.0.0";
         private int port = 8080;
         private int bossThreads = Runtime.getRuntime().availableProcessors();
         private int workerThreads = Runtime.getRuntime().availableProcessors() * 2;

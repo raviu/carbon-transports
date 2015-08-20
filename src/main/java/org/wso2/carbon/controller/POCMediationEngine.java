@@ -49,7 +49,7 @@ public class POCMediationEngine implements org.wso2.carbon.api.Engine {
         outMsg.setProperty(ENGINE_PROTOCOL, "Custom-Header", "PerfTest");
         CarbonCallback callbackNew = new CarbonCallback() {
             public void done(CarbonMessage cMsg) {
-                log.info("This is a test!");
+                //log.info("This is a test!");
                 responseCallback.done(cMsg);
             }
         };

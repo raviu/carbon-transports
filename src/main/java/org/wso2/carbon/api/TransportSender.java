@@ -19,10 +19,11 @@ package org.wso2.carbon.api;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class TransportSender<T> {
 
-    private Map<T, CarbonCallback> callbackMap = new HashMap<T, CarbonCallback>();
+    private Map<T, CarbonCallback> callbackMap = new ConcurrentHashMap<T, CarbonCallback>();
 
     private String protocol;
     private Engine engine;

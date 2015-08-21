@@ -50,6 +50,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private Bootstrap bootstrap;
     private ChannelFuture channelFuture;
     private Channel channel;
+    private CarbonCallback responseCallback;
 
     public SourceHandler(Engine engine) {
         this.engine = engine;
@@ -87,7 +88,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
             cMsg.setPipe(new Pipe(Constants.SOURCE_PIPE));
 
-            CarbonCallback responseCallback = new ResponseCallback(ctx);
+            responseCallback = new ResponseCallback(ctx);
 
             WorkerPool.submitJob(new Worker(engine, cMsg, responseCallback));
         } else if (msg instanceof HttpContent) {

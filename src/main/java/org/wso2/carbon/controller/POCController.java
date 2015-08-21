@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.controller;
 
+import io.netty.channel.ChannelInitializer;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.http.netty.listener.NettyListener;
 import org.wso2.carbon.http.netty.listener.SourceInitializer;
@@ -24,6 +25,8 @@ import org.wso2.carbon.http.netty.sender.Sender;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class POCController {
@@ -72,6 +75,32 @@ public class POCController {
         System.out.println("Usage: java -jar server.jar <default |  " +
                 "jaxrs> /path/to/properties.prop");
         System.out.println("\n");
+    }
+
+    public Engine startPOCController(){
+        Sender sender = new Sender();
+        Engine engine = new CamelMediationEngine(sender);
+
+        File propFile = new File("sample.properties");
+        try {
+            FileInputStream fis = new FileInputStream(propFile);
+            props.load(fis);
+        } catch (Exception e) {
+            showUsage();
+            e.printStackTrace();
+            System.exit(0);
+        }
+
+        Map<String, ChannelInitializer> channelInitializers = new HashMap<String, ChannelInitializer>();
+        channelInitializers.put("SourceInitializer", new SourceInitializer(engine));
+
+        NettyListener.Config nettyConfig = new NettyListener.Config("netty-gw").setPort(9090);
+        NettyListener nettyListener = new NettyListener(nettyConfig);
+        nettyListener.setDefaultInitializer(new SourceInitializer(engine));
+        nettyListener.start();
+
+
+        return engine;
     }
 
 }

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.wso2.carbon</groupId>
-    <artifactId>carbon-netty-http-transport</artifactId>
+    <artifactId>carbon-netty-http-transport-with-camel</artifactId>
     <version>1.0.0</version>
 
     <packaging>bundle</packaging>
@@ -93,6 +93,23 @@
             <version>3.8.1</version>
             <scope>test</scope>
         </dependency>
+        <!--added below dependencies in camel-->
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-core</artifactId>
+            <version>2.15.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -142,7 +159,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.wso2.carbon.controller.POCController</mainClass>
+                            <mainClass>org.wso2.carbon.mediation.camel.Test</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -157,7 +174,7 @@
         <netty.version>4.0.30.Final</netty.version>
         <equinox.osgi.version>3.9.1.v20130814-1242</equinox.osgi.version>
         <equinox.osgi.services.version>3.3.100.v20130513-1956</equinox.osgi.services.version>
-        <org.wso2.carbon.core.version>5.0.0-SNAPSHOT</org.wso2.carbon.core.version>
+        <org.wso2.carbon.core.version>5.0.0-m4</org.wso2.carbon.core.version>
         <osgi.framework.import.version.range>[1.7.0, 1.8.0)</osgi.framework.import.version.range>
         <osgi.service.tracker.import.version.range>[1.5.1, 1.6.0)</osgi.service.tracker.import.version.range>
     </properties>

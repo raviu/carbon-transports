@@ -43,6 +43,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     private TransportSender sender;
     private ChannelHandlerContext inboundChannelHandlerContext;
     private CarbonMessage cMsg;
+    private CarbonCallback callback;
 
     public TargetHandler(TransportSender sender, ChannelHandlerContext inboundChannelHandlerContext) {
         this.sender = sender;
@@ -71,7 +72,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
                     Constants.CHNL_HNDLR_CTX, inboundChannelHandlerContext);
             cMsg.setPipe(new Pipe(Constants.TARGET_PIPE));
 
-            CarbonCallback callback = sender.consumeCallback(ctx.channel());
+//            CarbonCallback callback = sender.consumeCallback(ctx.channel());
             WorkerPool.submitJob(new Worker(sender.getEngine(), cMsg, callback));
         } else if (msg instanceof HttpContent) {
             HTTPContentChunk chunk;
@@ -93,4 +94,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         log.debug("Target channel closed.");
     }
 
+    public void setCallback(CarbonCallback callback) {
+        this.callback = callback;
+    }
 }

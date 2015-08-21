@@ -51,6 +51,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private ChannelFuture channelFuture;
     private Channel channel;
 
+    private TargetInitializer tInit;
     private CarbonCallback responseCallback;
 
     public SourceHandler(Engine engine) {
@@ -60,9 +61,10 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         bootstrap = new Bootstrap();
+        tInit = new TargetInitializer(engine.getSender(), ctx);
         bootstrap.group(ctx.channel().eventLoop())
                 .channel(ctx.channel().getClass())
-                .handler(new TargetInitializer(engine.getSender(), ctx));
+                .handler(tInit);
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
@@ -86,6 +88,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
                     Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));
             cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX, ctx);
             cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.SRC_HNDLR, this);
+            cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.TRG_INIT, tInit);
 
             cMsg.setPipe(new Pipe(Constants.SOURCE_PIPE));
 

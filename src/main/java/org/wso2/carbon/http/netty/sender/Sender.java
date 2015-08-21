@@ -51,7 +51,7 @@ public class Sender extends TransportSender {
         return true;
     }
 
-    public boolean send(CarbonMessage msg, CarbonCallback callback) {
+    public boolean send(CarbonMessage msg, final CarbonCallback callback) {
         final ChannelHandlerContext inboundCtx = (ChannelHandlerContext)
                 msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
 
@@ -65,15 +65,19 @@ public class Sender extends TransportSender {
 
         InetSocketAddress address = new InetSocketAddress(msg.getHost(), msg.getPort());
 
+        final TargetInitializer tInit = (TargetInitializer) msg.getProperty(Constants.PROTOCOL_NAME,
+                Constants.TRG_INIT);
+
         if (srcHandler.getChannelFuture() == null) {
             ChannelFuture future = bootstrap.connect(address);
             final Channel outboundChannel = future.channel();
-            putCallback(outboundChannel, callback);
-
+//           putCallback(outboundChannel, callback);
+//           outboundChannel.attr(TargetHandler.callbackAttribute).set(callback);
             future.addListener(new ChannelFutureListener() {
 
                 public void operationComplete(ChannelFuture future) throws Exception {
                     if (future.isSuccess()) {
+                        tInit.getTargetHandler().setCallback(callback);
                         outboundChannel.write(httpRequest);
                         while (true) {
                             HTTPContentChunk chunk = (HTTPContentChunk) pipe.getContent();
@@ -97,7 +101,9 @@ public class Sender extends TransportSender {
 
         } else {
             ChannelFuture future = srcHandler.getChannelFuture();
-            putCallback(srcHandler.getChannel(), callback);
+//            putCallback(srcHandler.getChannel(), callback);
+//            srcHandler.getChannel().attr(TargetHandler.callbackAttribute).set(callback);
+            tInit.getTargetHandler().setCallback(callback);
             if (future.isSuccess() && srcHandler.getChannel().isActive()) {
                 srcHandler.getChannel().write(httpRequest);
                 while (true) {
@@ -113,7 +119,9 @@ public class Sender extends TransportSender {
             } else {
                 final ChannelFuture futuretwo = bootstrap.connect(address);
                 final Channel outboundChannel = futuretwo.channel();
-                putCallback(outboundChannel, callback);
+//                putCallback(outboundChannel, callback);
+//                outboundChannel.attr(TargetHandler.callbackAttribute).set(callback);
+                tInit.getTargetHandler().setCallback(callback);
                 futuretwo.addListener(new ChannelFutureListener() {
 
                     public void operationComplete(ChannelFuture future) throws Exception {

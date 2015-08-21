@@ -50,7 +50,6 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private Bootstrap bootstrap;
     private ChannelFuture channelFuture;
     private Channel channel;
-    private CarbonCallback responseCallback;
 
     private TargetInitializer tInit;
     private CarbonCallback responseCallback;

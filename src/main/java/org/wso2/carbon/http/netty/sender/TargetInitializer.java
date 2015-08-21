@@ -33,6 +33,7 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
 
     private TransportSender sender;
     private volatile ChannelHandlerContext ctx;
+    private TargetHandler handler;
 
     public TargetInitializer(TransportSender sender, ChannelHandlerContext ctx) {
         this.sender = sender;
@@ -45,6 +46,11 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
         p.addLast("decoder", new HttpResponseDecoder());
         p.addLast("encoder", new HttpRequestEncoder());
 //        p.addLast("aggegator", new HttpObjectAggregator(512 * 1024));
-        p.addLast(HANDLER, new TargetHandler(sender, ctx));
+        handler = new TargetHandler(sender, ctx);
+        p.addLast(HANDLER, handler);
+    }
+
+    public TargetHandler getTargetHandler() {
+        return handler;
     }
 }

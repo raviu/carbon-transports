@@ -53,21 +53,19 @@ public class Sender extends TransportSender {
 
     public boolean send(CarbonMessage msg, final CarbonCallback callback) {
         final ChannelHandlerContext inboundCtx = (ChannelHandlerContext)
-                msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
+                msg.getProperty(Constants.CHNL_HNDLR_CTX);
 
         final HttpRequest httpRequest = Util.createHttpRequest(msg);
         final Pipe pipe = msg.getPipe();
 
-        final SourceHandler srcHandler = (SourceHandler) msg.getProperty(
-                Constants.PROTOCOL_NAME, Constants.SRC_HNDLR);
+        final SourceHandler srcHandler = (SourceHandler) msg.getProperty(Constants.SRC_HNDLR);
 
         Bootstrap bootstrap = srcHandler.getBootstrap();
 
         InetSocketAddress address = new InetSocketAddress(msg.getHost(), msg.getPort());
         final HttpRoute route = new HttpRoute(msg.getHost(), msg.getPort());
 
-        final TargetInitializer tInit = (TargetInitializer) msg.getProperty(Constants.PROTOCOL_NAME,
-                Constants.TRG_INIT);
+        final TargetInitializer tInit = (TargetInitializer) msg.getProperty(Constants.TRG_INIT);
 
         // TODO use src handler map (host port) and condition to use pool for throttling.
         if (srcHandler.getChannelFuture(route) == null) {
@@ -168,7 +166,7 @@ public class Sender extends TransportSender {
 
     public boolean sendBack(CarbonMessage msg) {
         final ChannelHandlerContext inboundChCtx = (ChannelHandlerContext)
-                msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
+                msg.getProperty(Constants.CHNL_HNDLR_CTX);
         final Pipe pipe = msg.getPipe();
         final HttpResponse response = Util.createHttpResponse(msg);
 

@@ -1,19 +1,9 @@
 package org.wso2.carbon.mediation.camel;
 
-import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.impl.DefaultConsumer;
 import org.apache.camel.util.ObjectHelper;
-import org.apache.camel.util.URISupport;
-import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.controller.CamelMediationEngine;
-import org.wso2.carbon.controller.POCController;
-import org.wso2.carbon.http.netty.common.Constants;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * The CamelMediation consumer. Client incoming messages will
@@ -40,7 +30,7 @@ public class CamelMediationConsumer extends DefaultConsumer {
     @Override public CamelMediationEndpoint getEndpoint() {
         return (CamelMediationEndpoint) super.getEndpoint();
     }
-
+/*
     private Map<String, Object> getCamelHeaders(CarbonMessage msg, Exchange exchange) {
 
         Map<String, Object> headers = new HashMap<String, Object>();
@@ -125,7 +115,7 @@ public class CamelMediationConsumer extends DefaultConsumer {
             for (Map.Entry<String, Object> entry : uriParameters.entrySet()) {
                 String name = entry.getKey();
                 Object values = entry.getValue();
-                /*
+                *//*
                 Iterator<?> it = ObjectHelper.createIterator(values);
                 while (it.hasNext()) {
                     Object extracted = it.next();
@@ -136,15 +126,16 @@ public class CamelMediationConsumer extends DefaultConsumer {
                         NettyHttpHelper.appendHeader(headers, name, decoded);
                     }
                 }
-                */
+                *//*
                 headers.put(name, values);
             }
         }
-/*
+*//*
         for (Map.Entry<String, Object> entry : headers.entrySet()) {
             System.out.println(entry.getKey() + " : " + entry.getValue());
         }
-*/
+*//*
         return headers;
     }
+    */
 }

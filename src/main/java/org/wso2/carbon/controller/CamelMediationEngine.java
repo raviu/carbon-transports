@@ -16,13 +16,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- *
+ * responsible for receive the client message and send it in to camel
+ * and send back the response message to client
  */
 public class CamelMediationEngine implements org.wso2.carbon.api.Engine {
 
-    private static Logger log = Logger.getLogger(POCMediationEngine.class);
+    private static Logger log = Logger.getLogger(CamelMediationEngine.class);
 
-    private static String ENGINE_PROTOCOL = "http";
     private TransportSender sender;
     private final ConcurrentHashMap<String, CamelMediationConsumer> consumers =
             new ConcurrentHashMap<String, CamelMediationConsumer>();
@@ -43,7 +43,7 @@ public class CamelMediationEngine implements org.wso2.carbon.api.Engine {
             log.debug("Channel: {} received body: {}" + cmsg.getId().toString());
         }
         Map<String, Object> transportHeaders =
-                (Map<String, Object>) cmsg.getProperty(cmsg.getProtocol(), Constants.TRANSPORT_HEADERS);
+                (Map<String, Object>) cmsg.getProperty(Constants.TRANSPORT_HEADERS);
         CamelMediationConsumer consumer =
                 decideConsumer(cmsg.getProtocol(), (String) transportHeaders.get("Host"), cmsg.getURI());
         if (consumer != null) {
@@ -69,10 +69,10 @@ public class CamelMediationEngine implements org.wso2.carbon.api.Engine {
                                        final CarbonCallback requestCallback) {
         consumer.getAsyncProcessor().process(exchange, new AsyncCallback() {
             @Override public void done(boolean done) {
-                CarbonMessageImpl mediatedResponse = (CarbonMessageImpl) exchange.getOut().getBody();
+                CarbonMessageImpl mediatedResponse = exchange.getOut().getBody(CarbonMessageImpl.class);
                 Map<String, Object> mediatedHeaders = exchange.getOut().getHeaders();
                 mediatedResponse
-                        .setProperty(mediatedResponse.getProtocol(), Constants.TRANSPORT_HEADERS, mediatedHeaders);
+                        .setProperty(Constants.TRANSPORT_HEADERS, mediatedHeaders);
                 try {
                     requestCallback.done(mediatedResponse);
                 } finally {

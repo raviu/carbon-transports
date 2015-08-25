@@ -34,11 +34,11 @@ import org.wso2.carbon.api.Pipe;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.HTTPContentChunk;
+import org.wso2.carbon.http.netty.common.HttpRoute;
 import org.wso2.carbon.http.netty.common.Util;
 import org.wso2.carbon.http.netty.listener.SourceHandler;
 
 import java.net.InetSocketAddress;
-
 
 public class Sender extends TransportSender {
     private static Logger log = Logger.getLogger(Sender.class);
@@ -64,13 +64,17 @@ public class Sender extends TransportSender {
         Bootstrap bootstrap = srcHandler.getBootstrap();
 
         InetSocketAddress address = new InetSocketAddress(msg.getHost(), msg.getPort());
+        final HttpRoute route = new HttpRoute(msg.getHost(), msg.getPort());
 
         final TargetInitializer tInit = (TargetInitializer) msg.getProperty(Constants.PROTOCOL_NAME,
                 Constants.TRG_INIT);
 
-        if (srcHandler.getChannelFuture() == null) {
+        // TODO use src handler map (host port) and condition to use pool for throttling.
+        if (srcHandler.getChannelFuture(route) == null) {
             ChannelFuture future = bootstrap.connect(address);
             final Channel outboundChannel = future.channel();
+            addCloseListener(outboundChannel, srcHandler, route);
+
 //           putCallback(outboundChannel, callback);
 //           outboundChannel.attr(TargetHandler.callbackAttribute).set(callback);
             future.addListener(new ChannelFutureListener() {
@@ -90,8 +94,8 @@ public class Sender extends TransportSender {
                                 outboundChannel.write(httpContent);
                             }
                         }
-                        srcHandler.setChannelFuture(future);
-                        srcHandler.setChannel(outboundChannel);
+                        srcHandler.addChannelFuture(route, future);
+//                        srcHandler.setChannel(outboundChannel);
                     } else {
                         // Close the connection if the connection attempt has failed.
                         outboundChannel.close();
@@ -100,25 +104,27 @@ public class Sender extends TransportSender {
             });
 
         } else {
-            ChannelFuture future = srcHandler.getChannelFuture();
+            ChannelFuture future = srcHandler.getChannelFuture(route);
 //            putCallback(srcHandler.getChannel(), callback);
 //            srcHandler.getChannel().attr(TargetHandler.callbackAttribute).set(callback);
             tInit.getTargetHandler().setCallback(callback);
-            if (future.isSuccess() && srcHandler.getChannel().isActive()) {
-                srcHandler.getChannel().write(httpRequest);
+            if (future.isSuccess() && future.channel().isActive()) {
+                future.channel().write(httpRequest);
                 while (true) {
                     HTTPContentChunk chunk = (HTTPContentChunk) pipe.getContent();
                     HttpContent httpContent = chunk.getHttpContent();
                     if (httpContent instanceof LastHttpContent) {
-                        srcHandler.getChannel().writeAndFlush(httpContent);
+                        future.channel().writeAndFlush(httpContent);
                         break;
                     }
-                    srcHandler.getChannel().write(httpContent);
+                    future.channel().write(httpContent);
                 }
 
             } else {
                 final ChannelFuture futuretwo = bootstrap.connect(address);
                 final Channel outboundChannel = futuretwo.channel();
+                addCloseListener(outboundChannel, srcHandler, route);
+
 //                putCallback(outboundChannel, callback);
 //                outboundChannel.attr(TargetHandler.callbackAttribute).set(callback);
                 tInit.getTargetHandler().setCallback(callback);
@@ -136,8 +142,7 @@ public class Sender extends TransportSender {
                                 }
                                 outboundChannel.write(httpContent);
                             }
-                            srcHandler.setChannelFuture(future);
-
+                            srcHandler.addChannelFuture(route, future);
                         } else {
                             // Close the connection if the connection attempt has failed.
                             outboundChannel.close();
@@ -148,6 +153,17 @@ public class Sender extends TransportSender {
         }
 
         return false;
+    }
+
+    private void addCloseListener(Channel ch, final SourceHandler handler, final HttpRoute route) {
+        ChannelFuture closeFuture = ch.closeFuture();
+
+        closeFuture.addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                handler.removeChannelFuture(route);
+            }
+        });
     }
 
     public boolean sendBack(CarbonMessage msg) {

@@ -1,11 +1,8 @@
 package org.wso2.carbon.mediation.camel;
 
 import org.apache.camel.CamelContext;
-import org.apache.camel.Endpoint;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
-
-import java.util.Map;
 
 /**
  *

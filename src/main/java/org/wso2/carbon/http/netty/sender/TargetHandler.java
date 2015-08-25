@@ -64,12 +64,9 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             cMsg.setDirection(CarbonMessageImpl.OUT);
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.CHNL_HNDLR_CTX, inboundChannelHandlerContext);
+            cMsg.setProperty(Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
+            cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
+            cMsg.setProperty(Constants.CHNL_HNDLR_CTX, inboundChannelHandlerContext);
             cMsg.setPipe(new Pipe(Constants.TARGET_PIPE));
 
 //            CarbonCallback callback = sender.consumeCallback(ctx.channel());

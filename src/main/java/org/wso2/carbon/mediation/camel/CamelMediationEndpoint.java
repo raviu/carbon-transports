@@ -25,8 +25,7 @@ public class CamelMediationEndpoint extends DefaultEndpoint {
         super(endpointUri);
     }
 
-    public CamelMediationEndpoint(String uri, CamelMediationComponent component,
-                                  CamelMediationEngine engine) {
+    public CamelMediationEndpoint(String uri, CamelMediationComponent component, CamelMediationEngine engine) {
         super(uri, component);
         this.engine = engine;
     }

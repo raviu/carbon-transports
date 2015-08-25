@@ -13,74 +13,60 @@ import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.controller.CamelMediationEngine;
 import org.wso2.carbon.http.netty.common.Constants;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The CamelMediation producer handle the request and response with the backend.
  */
 public class CamelMediationProducer extends DefaultAsyncProducer {
-    private static final transient Log LOG = LogFactory.getLog(CamelMediationProducer.class);
-    private CamelMediationEngine engine;
-    private static String ENGINE_PROTOCOL = "http";
-    private Map<String, CamelEndPointURL> endPointURLMap = new ConcurrentHashMap<String, CamelEndPointURL>();
 
-    public CamelMediationProducer(CamelMediationEndpoint endpoint) {
-        super(endpoint);
-    }
+    private static final transient Log log = LogFactory.getLog(CamelMediationProducer.class);
+
+    private CamelMediationEngine engine;
+    private String host;
+    private int port;
+    private String uri;
 
     public CamelMediationProducer(CamelMediationEndpoint endpoint, CamelMediationEngine engine) {
         super(endpoint);
         this.engine = engine;
+        try {
+            URL url = new URL(ObjectHelper.after(getEndpoint().getEndpointKey(), "://"));
+            host = url.getHost();
+            port = url.getPort();
+            uri = url.getPath();
+        } catch (MalformedURLException e) {
+            log.error("Could not generate endpoint url for : " + getEndpoint().getEndpointKey());
+        }
     }
 
     public boolean process(Exchange exchange, AsyncCallback callback) {
         //change the header parameters according to the routed endpoint url
         setCarbonHeaders(exchange);
         engine.getSender()
-              .send((CarbonMessage) exchange.getIn().getBody(), new NettyHttpBackEndCallback(exchange, callback));
+              .send(exchange.getIn().getBody(CarbonMessageImpl.class), new NettyHttpBackEndCallback
+                      (exchange, callback));
         return false;
     }
 
     private void setCarbonHeaders(Exchange exchange) {
-        CarbonMessageImpl request;
+
+        CarbonMessageImpl request = (CarbonMessageImpl) exchange.getIn().getBody();
+        Map<String, Object> headers = exchange.getIn().getHeaders();
+
         //TODO change
-        Boolean routingMatched = (Boolean) exchange.getProperties().get(Exchange.FILTER_MATCHED);
-
-        if (routingMatched) {
-            String camelToEndPoint = (String) exchange.getProperties().get(Exchange.TO_ENDPOINT);
-
-            Map<String, Object> headers = exchange.getIn().getHeaders();
-            request = (CarbonMessageImpl) exchange.getIn().getBody();
-            if (request != null) {
-                //decode the camel endpoint url and populate the carbon message routing parameters
-                CamelEndPointURL camelEndPointURLob = endPointURLMap.get(camelToEndPoint);
-                if (null == camelEndPointURLob) {
-                    String proxyURL = ObjectHelper.after(camelToEndPoint, "//");
-                    String temp1 = ObjectHelper.after(proxyURL, "//");
-                    String temp2 = ObjectHelper.after(temp1, ":");
-                    camelEndPointURLob = new CamelEndPointURL(ObjectHelper.before(temp1, ":"),
-                                                              Integer.parseInt(ObjectHelper.before(temp2, "/")),
-                                                              "/" + ObjectHelper.after(temp2, "/"));
-                    endPointURLMap.put(camelToEndPoint, camelEndPointURLob);
-
-                    String host = ObjectHelper.before(temp1, ":");
-                    int port = Integer.parseInt(ObjectHelper.before(temp2, "/"));
-                    String uri = "/" + ObjectHelper.after(temp2, "/");
-
-                    request.setHost(host);
-                    request.setPort(port);
-                    request.setURI(uri);
-                    headers.put("Host", host + ":" + port);
-                } else {
-                    request.setHost(camelEndPointURLob.getHost());
-                    request.setPort(camelEndPointURLob.getPort());
-                    request.setURI(camelEndPointURLob.getUri());
-                }
-
-                headers.put("Host", request.getHost() + ":" + request.getPort());
-                request.setProperty(request.getProtocol(), Constants.TRANSPORT_HEADERS, headers);
+        if (request != null) {
+            request.setHost(host);
+            request.setPort(port);
+            request.setURI(uri);
+            if (port != 80) {
+                headers.put("Host", host + ":" + port);
+            } else {
+                headers.put("Host", host);
             }
+            request.setProperty(Constants.TRANSPORT_HEADERS, headers);
         }
     }
 
@@ -100,7 +86,7 @@ public class CamelMediationProducer extends DefaultAsyncProducer {
         @Override public void done(CarbonMessage cMsg) {
             if (cMsg != null) {
                 Map<String, Object> transportHeaders =
-                        (Map<String, Object>) cMsg.getProperty(cMsg.getProtocol(), Constants.TRANSPORT_HEADERS);
+                        (Map<String, Object>) cMsg.getProperty(Constants.TRANSPORT_HEADERS);
                 if (transportHeaders != null) {
                     exchange.getOut().setHeaders(transportHeaders);
                     exchange.getOut().setBody(cMsg);

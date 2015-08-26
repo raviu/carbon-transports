@@ -36,6 +36,8 @@ public class Constants {
 
     public static final String SRC_HNDLR = "SRC_HNDLR";
 
+    public static final String TRG_INIT = "TRG_INIT";
+
     public static final String STATE_TRANSITION = "STATE_TRANSITION";
 
     public static final String STATE_STARTED = "STATE_STARTED";

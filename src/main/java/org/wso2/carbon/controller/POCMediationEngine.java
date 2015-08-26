@@ -18,6 +18,7 @@
 package org.wso2.carbon.controller;
 
 import org.apache.log4j.Logger;
+import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.common.CarbonMessageImpl;
@@ -33,26 +34,33 @@ public class POCMediationEngine implements org.wso2.carbon.api.Engine {
         sender.setEngine(this);
     }
 
-    public boolean init() {
+    public boolean init(TransportSender sender) {
         return true;
     }
 
-    public boolean receive(CarbonMessage msg) {
+    public boolean receive(CarbonMessage msg, final CarbonCallback responseCallback) {
 
-        if (msg.getDirection() == CarbonMessageImpl.IN) {
-            CarbonMessage outMsg = new CarbonMessageImpl(ENGINE_PROTOCOL);
-            outMsg.setPipe(msg.getPipe());
-            outMsg.setHost(POCController.props.getProperty("proxy_to_host", "localhost"));
-            outMsg.setPort(Integer.valueOf(POCController.props.getProperty("proxy_to_port", "8280")));
-            outMsg.setURI(POCController.props.getProperty("proxy_to_uri", "/services/echo"));
-            outMsg.setProperties(msg.getProperties());
-            outMsg.setProperty(ENGINE_PROTOCOL, "Custom-Header", "PerfTest");
-            sender.send(outMsg);
-        } else {
-            sender.sendBack(msg);
-        }
+        CarbonMessage outMsg = new CarbonMessageImpl(ENGINE_PROTOCOL);
+        outMsg.setPipe(msg.getPipe());
+        outMsg.setHost(POCController.props.getProperty("proxy_to_host", "localhost"));
+        outMsg.setPort(Integer.valueOf(POCController.props.getProperty("proxy_to_port", "8080")));
+        outMsg.setURI(POCController.props.getProperty("proxy_to_uri", "/services/echo"));
+        outMsg.setProperties(msg.getProperties());
+        outMsg.setProperty("Custom-Header", "PerfTest");
+
+        CarbonCallback callbackNew = new CarbonCallback() {
+            public void done(CarbonMessage cMsg) {
+                //log.info("This is a test!");
+                responseCallback.done(cMsg);
+            }
+        };
+        sender.send(outMsg, callbackNew);
 
         return true;
     }
 
+    @Override
+    public TransportSender getSender() {
+        return sender;
+    }
 }

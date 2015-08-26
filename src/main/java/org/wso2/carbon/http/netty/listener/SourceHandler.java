@@ -18,7 +18,6 @@
 package org.wso2.carbon.http.netty.listener;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -28,11 +27,13 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.HTTPContentChunk;
+import org.wso2.carbon.http.netty.common.HttpRoute;
 import org.wso2.carbon.http.netty.common.Pipe;
 import org.wso2.carbon.http.netty.common.Util;
 import org.wso2.carbon.http.netty.common.Worker;
@@ -40,6 +41,8 @@ import org.wso2.carbon.http.netty.common.WorkerPool;
 import org.wso2.carbon.http.netty.sender.TargetInitializer;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SourceHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(SourceHandler.class);
@@ -47,8 +50,12 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private Engine engine;
     private CarbonMessage cMsg;
     private Bootstrap bootstrap;
-    private ChannelFuture channelFuture;
-    private Channel channel;
+//    private ChannelFuture channelFuture;
+//    private Channel channel;
+    private Map<String, ChannelFuture> channelFutureMap = new HashMap<>();
+
+    private TargetInitializer tInit;
+    private CarbonCallback responseCallback;
 
     public SourceHandler(Engine engine) {
         this.engine = engine;
@@ -57,9 +64,10 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         bootstrap = new Bootstrap();
+        tInit = new TargetInitializer(engine.getSender(), ctx);
         bootstrap.group(ctx.channel().eventLoop())
                 .channel(ctx.channel().getClass())
-                .handler(new TargetInitializer(engine, ctx));
+                .handler(tInit);
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
@@ -75,18 +83,18 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
             cMsg.setURI(httpRequest.getUri());
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.HTTP_VERSION, httpRequest.getProtocolVersion().text());
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.HTTP_METHOD, httpRequest.getMethod().name());
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));
-            cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX, ctx);
-            cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.SRC_HNDLR, this);
+            cMsg.setProperty(Constants.HTTP_VERSION, httpRequest.getProtocolVersion().text());
+            cMsg.setProperty(Constants.HTTP_METHOD, httpRequest.getMethod().name());
+            cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));
+            cMsg.setProperty(Constants.CHNL_HNDLR_CTX, ctx);
+            cMsg.setProperty(Constants.SRC_HNDLR, this);
+            cMsg.setProperty(Constants.TRG_INIT, tInit);
 
             cMsg.setPipe(new Pipe(Constants.SOURCE_PIPE));
 
-            WorkerPool.submitJob(new Worker(engine, cMsg));
+            responseCallback = new ResponseCallback(ctx);
+
+            WorkerPool.submitJob(new Worker(engine, cMsg, responseCallback));
         } else if (msg instanceof HttpContent) {
             HTTPContentChunk chunk;
             if (cMsg != null) {
@@ -120,20 +128,33 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         this.bootstrap = bootstrap;
     }
 
-    public ChannelFuture getChannelFuture() {
-        return channelFuture;
+//    public ChannelFuture getChannelFuture() {
+//        return channelFuture;
+//    }
+
+//    public void setChannelFuture(ChannelFuture channelFuture) {
+//        this.channelFuture = channelFuture;
+//    }
+
+//    public Channel getChannel() {
+//        return channel;
+//    }
+//
+//    public void setChannel(Channel channel) {
+//        this.channel = channel;
+//    }
+
+    public void addChannelFuture(HttpRoute route, ChannelFuture future) {
+        channelFutureMap.put(route.toString(), future);
     }
 
-    public void setChannelFuture(ChannelFuture channelFuture) {
-        this.channelFuture = channelFuture;
+    public void removeChannelFuture(HttpRoute route) {
+        log.debug("Removing channel future from map");
+        channelFutureMap.remove(route.toString());
     }
 
-    public Channel getChannel() {
-        return channel;
+    public ChannelFuture getChannelFuture(HttpRoute route) {
+        return channelFutureMap.get(route.toString());
     }
-
-    public void setChannel(Channel channel) {
-        this.channel = channel;
-    }
-
 }
+

@@ -17,32 +17,9 @@
  */
 package org.wso2.carbon.api;
 
-import org.apache.log4j.Logger;
+public interface CarbonCallback {
 
-public abstract class TransportSender {
-    private static Logger log = Logger.getLogger(TransportSender.class);
-
-    private String protocol;
-    private Engine engine;
-
-    public TransportSender(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public Engine getEngine() {
-        return engine;
-    }
-
-    public void setEngine(Engine engine) {
-        this.engine = engine;
-    }
-
-    public String getProtocol() { return protocol; }
-
-    public void setProtocol(String protocol) { this.protocol = protocol; }
-
-    public abstract boolean init();
-
-    public abstract boolean send(CarbonMessage msg, CarbonCallback callback);
+    void done(CarbonMessage cMsg);
 
 }
+

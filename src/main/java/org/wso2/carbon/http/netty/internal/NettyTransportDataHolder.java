@@ -18,7 +18,6 @@
  */
 package org.wso2.carbon.http.netty.internal;
 
-import io.netty.channel.ChannelInitializer;
 import org.wso2.carbon.http.netty.listener.CarbonNettyServerInitializer;
 
 import java.util.HashMap;

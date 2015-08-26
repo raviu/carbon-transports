@@ -15,14 +15,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.api;
+package org.wso2.carbon.http.netty.common;
 
-public interface Engine {
+public class HttpRoute {
+    private String host;
+    private int port;
 
-    boolean init(TransportSender sender);
+    public HttpRoute(String host, int port) {
+        this.host = host;
+        this.port = port;
+    }
 
-    boolean receive(CarbonMessage msg, CarbonCallback callback);
-
-    TransportSender getSender();
+    @Override
+    public String toString() {
+        return host + "-" + port;
+    }
 
 }

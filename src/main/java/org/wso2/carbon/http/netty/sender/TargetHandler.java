@@ -24,8 +24,9 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
-import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.HTTPContentChunk;
@@ -39,12 +40,13 @@ import java.net.InetSocketAddress;
 public class TargetHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(TargetHandler.class);
 
-    private Engine engine;
+    private TransportSender sender;
     private ChannelHandlerContext inboundChannelHandlerContext;
     private CarbonMessage cMsg;
+    private CarbonCallback callback;
 
-    public TargetHandler(Engine engine, ChannelHandlerContext inboundChannelHandlerContext) {
-        this.engine = engine;
+    public TargetHandler(TransportSender sender, ChannelHandlerContext inboundChannelHandlerContext) {
+        this.sender = sender;
         this.inboundChannelHandlerContext = inboundChannelHandlerContext;
     }
 
@@ -62,15 +64,13 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             cMsg.setDirection(CarbonMessageImpl.OUT);
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.CHNL_HNDLR_CTX, inboundChannelHandlerContext);
+            cMsg.setProperty(Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
+            cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
+            cMsg.setProperty(Constants.CHNL_HNDLR_CTX, inboundChannelHandlerContext);
             cMsg.setPipe(new Pipe(Constants.TARGET_PIPE));
 
-            WorkerPool.submitJob(new Worker(engine, cMsg));
+//            CarbonCallback callback = sender.consumeCallback(ctx.channel());
+            WorkerPool.submitJob(new Worker(sender.getEngine(), cMsg, callback));
         } else if (msg instanceof HttpContent) {
             HTTPContentChunk chunk;
             if (cMsg != null) {
@@ -91,4 +91,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         log.debug("Target channel closed.");
     }
 
+    public void setCallback(CarbonCallback callback) {
+        this.callback = callback;
+    }
 }

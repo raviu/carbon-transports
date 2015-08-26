@@ -77,4 +77,30 @@ public class POCController {
         System.out.println("\n");
     }
 
+    public Engine startPOCController(){
+        Sender sender = new Sender();
+        Engine engine = new CamelMediationEngine(sender);
+
+        File propFile = new File("sample.properties");
+        try {
+            FileInputStream fis = new FileInputStream(propFile);
+            props.load(fis);
+        } catch (Exception e) {
+            showUsage();
+            e.printStackTrace();
+            System.exit(0);
+        }
+
+        Map<String, ChannelInitializer> channelInitializers = new HashMap<String, ChannelInitializer>();
+        channelInitializers.put("SourceInitializer", new SourceInitializer(engine));
+
+        NettyListener.Config nettyConfig = new NettyListener.Config("netty-gw").setPort(9090);
+        NettyListener nettyListener = new NettyListener(nettyConfig);
+        nettyListener.setDefaultInitializer(new SourceInitializer(engine));
+        nettyListener.start();
+
+
+        return engine;
+    }
+
 }

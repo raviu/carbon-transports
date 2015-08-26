@@ -18,6 +18,11 @@
 package org.wso2.carbon.controller;
 
 import io.netty.channel.ChannelInitializer;
+import org.apache.camel.CamelContext;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.impl.DefaultCamelContext;
+import org.apache.camel.spi.ExecutorServiceManager;
+import org.apache.camel.spi.ThreadPoolProfile;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.http.netty.listener.NettyListener;
 import org.wso2.carbon.http.netty.listener.SourceInitializer;
@@ -34,35 +39,76 @@ public class POCController {
     public static Properties props = new Properties();
     private static String ID = "HTTP-netty";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Sender sender = new Sender();
-        Engine engine = new POCMediationEngine(sender);
+        Engine engine = new DefaultMediationEngine(sender);
 
         if (args.length == 2) {
-            if (args[0].equals("jaxrs")) {
-                engine = new POCJaxRSEngine(sender);
+            if (args[0].equals("camel")) {
+                CamelContext context = new DefaultCamelContext();
+
+                ExecutorServiceManager manager = context.getExecutorServiceManager();
+                ThreadPoolProfile defaultProfile = manager.getDefaultThreadPoolProfile();
+                defaultProfile.setPoolSize(500);
+                defaultProfile.setMaxPoolSize(1000);
+                defaultProfile.setMaxQueueSize(5000);
+                defaultProfile.setDefaultProfile(true);
+
+                context.addRoutes(new RouteBuilder() {
+                    public void configure() {
+                        from("wso2-gw:http://204.13.85.2:9090/service").threads(50)
+                                .choice()
+                                .when(header("routeId").regex("r1"))
+                                .to("wso2-gw:http://204.13.85.5:5050/services/echo")
+                                .when(header("routeId").regex("r2"))
+                                .to("wso2-gw:http://204.13.85.5:6060/services/echo")
+                                .otherwise()
+                                .to("wso2-gw:http://204.13.85.5:7070/services/echo");
+                    }
+
+/*
+                        from("wso2-gw:http://localhost:9090/service").threads(50)
+                        .choice()
+                        .when(header("routeId").regex("r1"))
+                        .to("wso2-gw:http://localhost:8080/services/echo")
+                        .when(header("routeId").regex("r2"))
+                        .to("wso2-gw:http://localhost:6060/services/echo")
+                        .otherwise()
+                        .to("wso2-gw:http://localhost:7070/services/echo");
             }
+*/
+                });
+                context.start();
+                while(true) {
+                    Thread.sleep(100000);
+                }
+            } else {
 
-            File propFile = new File(args[1]);
-            try {
-                FileInputStream fis = new FileInputStream(propFile);
-                props.load(fis);
-            } catch (Exception e) {
-                showUsage();
-                e.printStackTrace();
-                System.exit(0);
-            }
+                if (args[0].equals("jaxrs")) {
+                    engine = new POCJaxRSEngine(sender);
+                }
 
-            NettyListener.Config nettyConfig = new NettyListener.Config("netty-gw").setPort(9090);
-            NettyListener nettyListener = new NettyListener(nettyConfig);
-            nettyListener.setDefaultInitializer(new SourceInitializer(engine));
-            nettyListener.start();
-
-            while(true) {
+                File propFile = new File(args[1]);
                 try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
+                    FileInputStream fis = new FileInputStream(propFile);
+                    props.load(fis);
+                } catch (Exception e) {
+                    showUsage();
                     e.printStackTrace();
+                    System.exit(0);
+                }
+
+                NettyListener.Config nettyConfig = new NettyListener.Config("netty-gw").setPort(9090);
+                NettyListener nettyListener = new NettyListener(nettyConfig);
+                nettyListener.setDefaultInitializer(new SourceInitializer(engine));
+                nettyListener.start();
+
+                while (true) {
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         } else {

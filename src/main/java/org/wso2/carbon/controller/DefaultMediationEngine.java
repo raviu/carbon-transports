@@ -23,13 +23,13 @@ import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.common.CarbonMessageImpl;
 
-public class POCMediationEngine implements org.wso2.carbon.api.Engine {
-    private static Logger log = Logger.getLogger(POCMediationEngine.class);
+public class DefaultMediationEngine implements org.wso2.carbon.api.Engine {
+    private static Logger log = Logger.getLogger(DefaultMediationEngine.class);
 
     private static String ENGINE_PROTOCOL = "http";
     private TransportSender sender;
 
-    public POCMediationEngine(TransportSender sender) {
+    public DefaultMediationEngine(TransportSender sender) {
         this.sender = sender;
         sender.setEngine(this);
     }

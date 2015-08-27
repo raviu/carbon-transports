@@ -18,7 +18,6 @@
 package org.wso2.carbon.http.netty.listener;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -42,12 +41,13 @@ public class NettyListener extends CarbonTransport {
     private String SERVER_STATE = Constants.STATE_STOPPED;
 
     private ServerBootstrap bootstrap;
-    private EventLoopGroup bossGroup;
-    private EventLoopGroup workerGroup;
+    private static EventLoopGroup bossGroup;
+    private static  EventLoopGroup workerGroup;
     private static ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     private ChannelInitializer defaultInitializer;
     private Config nettyConfig;
+
 
     public NettyListener(Config nettyConfig) {
         super(nettyConfig.getId());
@@ -61,11 +61,6 @@ public class NettyListener extends CarbonTransport {
     }
 
     public void start() {
-        /*log.info("### Netty Boss Count: " + Integer.valueOf(POCController.props.getProperty(
-                "netty_boss", String.valueOf(Runtime.getRuntime().availableProcessors()))));
-        log.info("### Netty Worker Count: " + Integer.valueOf(POCController.props.getProperty(
-                "netty_worker", String.valueOf(Runtime.getRuntime().availableProcessors()))));*/
-
         startTransport();
     }
 
@@ -73,7 +68,7 @@ public class NettyListener extends CarbonTransport {
         bootstrap = new ServerBootstrap();
         bootstrap.option(ChannelOption.SO_BACKLOG, 100);
         bootstrap.group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class);
+                   .channel(NioServerSocketChannel.class);
         addChannelInitializer();
         bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
@@ -83,18 +78,11 @@ public class NettyListener extends CarbonTransport {
         bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
         bootstrap.childOption(ChannelOption.SO_RCVBUF, 1048576);
         bootstrap.childOption(ChannelOption.SO_SNDBUF, 1048576);
-//            Channel ch = null;
         try {
 
-//                ch = bootstrap.bind(nettyConfig.getPort()).sync().channel();
-            ChannelFuture channelFuture =
-                    bootstrap.bind(new InetSocketAddress(nettyConfig.getHost(), nettyConfig.getPort())).sync();
-
-//                allChannels.add(ch);
+            bootstrap.bind(new InetSocketAddress(nettyConfig.getHost(), nettyConfig.getPort())).sync();
             SERVER_STATE = Constants.STATE_STARTED;
             log.info("Netty Listener starting on port " + nettyConfig.getPort());
-//                ch.closeFuture().sync();
-//                allChannels.close().awaitUninterruptibly();
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
         }
@@ -161,12 +149,13 @@ public class NettyListener extends CarbonTransport {
     public static class Config {
 
         private String id;
-        private String host = "127.0.0.1";
+        private String host = "0.0.0.0";
         private int port = 8080;
         private int bossThreads = Runtime.getRuntime().availableProcessors();
         private int workerThreads = Runtime.getRuntime().availableProcessors() * 2;
         private int execThreads = 50;
         private SSLConfig sslConfig;
+
 
         public Config(String id) {
             if (id == null) {
@@ -181,6 +170,14 @@ public class NettyListener extends CarbonTransport {
 
         public int getBossThreads() {
             return bossThreads;
+        }
+
+        public EventLoopGroup getBossGroup(){
+            return bossGroup;
+        }
+
+        public EventLoopGroup getWorkerGroup(){
+            return workerGroup;
         }
 
         public Config setBossThreads(int bossThreads) {

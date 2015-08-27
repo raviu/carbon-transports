@@ -42,11 +42,11 @@
             <artifactId>org.eclipse.osgi</artifactId>
             <version>${equinox.osgi.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.core</artifactId>
-            <version>${org.wso2.carbon.core.version}</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.wso2.carbon</groupId>-->
+            <!--<artifactId>org.wso2.carbon.core</artifactId>-->
+            <!--<version>${org.wso2.carbon.core.version}</version>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>org.eclipse.osgi</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
@@ -63,6 +63,11 @@
             <version>${netty.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.wso2.orbit.com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+            <version>${disruptor.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-handler</artifactId>
             <version>${netty.version}</version>
@@ -71,6 +76,11 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-codec-http</artifactId>
             <version>${netty.version}</version>
+        </dependency>
+        <dependency>
+        <groupId>org.wso2.carbon</groupId>
+        <artifactId>org.wso2.carbon.core</artifactId>
+        <version>${org.wso2.carbon.core.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.ws.commons.axiom</groupId>
@@ -160,6 +170,7 @@
         <org.wso2.carbon.core.version>5.0.0-SNAPSHOT</org.wso2.carbon.core.version>
         <osgi.framework.import.version.range>[1.7.0, 1.8.0)</osgi.framework.import.version.range>
         <osgi.service.tracker.import.version.range>[1.5.1, 1.6.0)</osgi.service.tracker.import.version.range>
+        <disruptor.version>3.3.2.wso2v2</disruptor.version>
     </properties>
 
 </project>

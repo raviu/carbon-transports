@@ -24,6 +24,8 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
+import org.wso2.carbon.api.Pipe;
+import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.HTTPContentChunk;
 import org.wso2.carbon.http.netty.common.Util;
 
@@ -36,21 +38,21 @@ public class ResponseCallback implements CarbonCallback {
     }
 
     public void done(CarbonMessage cMsg) {
-        final org.wso2.carbon.api.Pipe pipe = cMsg.getPipe();
+        final Pipe pipe = cMsg.getPipe();
         final HttpResponse response = Util.createHttpResponse(cMsg);
-
         ctx.write(response);
         while (true) {
             HTTPContentChunk chunk = (HTTPContentChunk) pipe.getContent();
             HttpContent httpContent = chunk.getHttpContent();
             if (httpContent != null) {
                 if (httpContent instanceof LastHttpContent ||
-                        httpContent instanceof DefaultLastHttpContent) {
+                    httpContent instanceof DefaultLastHttpContent) {
                     ctx.writeAndFlush(httpContent);
                     break;
                 }
                 ctx.write(httpContent);
             }
         }
+        return;
     }
 }

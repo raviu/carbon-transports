@@ -18,12 +18,18 @@
 package org.wso2.carbon.controller;
 
 import org.wso2.carbon.api.Engine;
+import org.wso2.carbon.api.TransportSender;
+import org.wso2.carbon.disruptor.DisruptorFactory;
 import org.wso2.carbon.http.netty.listener.NettyListener;
 import org.wso2.carbon.http.netty.listener.SourceInitializer;
-import org.wso2.carbon.http.netty.sender.Sender;
+import org.wso2.carbon.http.netty.sender.NettySender;
+
+
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Properties;
 
 public class POCController {
@@ -32,13 +38,14 @@ public class POCController {
     private static String ID = "HTTP-netty";
 
     public static void main(String[] args) {
-        Sender sender = new Sender();
-        Engine engine = new POCMediationEngine(sender);
+
+
+
 
         if (args.length == 2) {
-            if (args[0].equals("jaxrs")) {
-                engine = new POCJaxRSEngine(sender);
-            }
+//            if (args[0].equals("jaxrs")) {
+//                engine = new POCJaxRSEngine(sender);
+//            }
 
             File propFile = new File(args[1]);
             try {
@@ -49,13 +56,26 @@ public class POCController {
                 e.printStackTrace();
                 System.exit(0);
             }
-
-            NettyListener.Config nettyConfig = new NettyListener.Config("netty-gw").setPort(9090);
+            DisruptorFactory.createDisruptor(Integer.valueOf(props.getProperty("disruptorbufferSize", "1024")),
+                                             Integer.valueOf(props.getProperty("noOfDisurptors", "1")),Integer.valueOf(props.getProperty("noOfEventHandlersPerDisruptor", "2")));
+            NettyListener.Config nettyConfig = new NettyListener.Config("netty-gw").setPort(Integer.valueOf(props.getProperty("uport", "8585")));
             NettyListener nettyListener = new NettyListener(nettyConfig);
-            nettyListener.setDefaultInitializer(new SourceInitializer(engine));
+            ArrayList<InetSocketAddress> inetSocketAddresses = new ArrayList<>();
+            inetSocketAddresses.add(new InetSocketAddress(props.getProperty("proxy_to_host", "localhost"), Integer.parseInt(props.getProperty("proxy_to_port", "8280"))));
+            NettySender.Config config = new NettySender.Config("netty-gw-sender").setConcurrency(Integer.valueOf(props.getProperty("concurrency", "2500"))).setWorkerGroup(nettyConfig.getWorkerGroup());
+            config.setEndpointList(inetSocketAddresses);
+//            try {
+//                //OutboundChannelFactory.OutboundChannelFactory(nettyConfig.getWorkerGroup(), Integer.valueOf(props.getProperty("concurrency", "2500")), inetSocketAddresses, config);
+//            } catch (IllegalAccessException e) {
+//                e.printStackTrace();
+//            }
+        TransportSender sender = new NettySender(config);
+        Engine engine = new POCMediationEngine(sender);
+            nettyListener.setDefaultInitializer(new SourceInitializer(engine, config));
+
             nettyListener.start();
 
-            while(true) {
+            while (true) {
                 try {
                     Thread.sleep(10000);
                 } catch (InterruptedException e) {
@@ -64,13 +84,13 @@ public class POCController {
             }
         } else {
             showUsage();
-        }
+       }
     }
 
     private static void showUsage() {
         System.out.println("\n\n");
         System.out.println("Usage: java -jar server.jar <default |  " +
-                "jaxrs> /path/to/properties.prop");
+                           "jaxrs> /path/to/properties.prop");
         System.out.println("\n");
     }
 

@@ -34,6 +34,8 @@ public class CarbonMessageImpl extends CarbonMessage {
     private String to;
     private String replyTo;
     private Pipe pipe;
+
+
     private Map<String, Map<String, Object>> properties = new HashMap<String, Map<String, Object>>();
 
     public CarbonMessageImpl(String protocol) {

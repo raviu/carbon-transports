@@ -1,22 +1,23 @@
-/**
+/*
  * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.wso2.carbon.http.netty.sender;
 
+
+import com.lmax.disruptor.RingBuffer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.DefaultHttpContent;
@@ -26,27 +27,27 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
-import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.common.CarbonMessageImpl;
+import org.wso2.carbon.disruptor.publisher.CarbonEventPublisher;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.HTTPContentChunk;
 import org.wso2.carbon.http.netty.common.Pipe;
 import org.wso2.carbon.http.netty.common.Util;
-import org.wso2.carbon.http.netty.common.Worker;
-import org.wso2.carbon.http.netty.common.WorkerPool;
 
 import java.net.InetSocketAddress;
 
 public class TargetHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(TargetHandler.class);
 
-    private TransportSender sender;
-    private ChannelHandlerContext inboundChannelHandlerContext;
+    private CarbonCallback callback;
+    private RingBuffer ringBuffer;
     private CarbonMessage cMsg;
+    private Pipe pipe;
+    private int trgId;
 
-    public TargetHandler(TransportSender sender, ChannelHandlerContext inboundChannelHandlerContext) {
-        this.sender = sender;
-        this.inboundChannelHandlerContext = inboundChannelHandlerContext;
+    public TargetHandler(RingBuffer ringBuffer , int trgId) {
+        this.ringBuffer = ringBuffer;
+        this.trgId=trgId;
     }
 
     @Override
@@ -56,24 +57,23 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof HttpResponse) {
-            HttpResponse httpResponse = (HttpResponse) msg;
 
+        if (msg instanceof HttpResponse) {
             cMsg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
-            cMsg.setDirection(CarbonMessageImpl.OUT);
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
+            cMsg.setDirection(CarbonMessage.OUT);
+            cMsg.setProperty(Constants.PROTOCOL_NAME,Constants.RESPONSE_CALLBACK ,callback);
+            HttpResponse httpResponse = (HttpResponse) msg;
+            cMsg.setDirection(CarbonMessageImpl.OUT);
             cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
+                             Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
             cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                    Constants.CHNL_HNDLR_CTX, inboundChannelHandlerContext);
-            cMsg.setPipe(new Pipe(Constants.TARGET_PIPE));
-
-            CarbonCallback callback = sender.consumeCallback(ctx.channel());
-            WorkerPool.submitJob(new Worker(sender.getEngine(), cMsg, callback));
-        } else if (msg instanceof HttpContent) {
+                             Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
+            pipe = new Pipe("Target Pipe");
+            cMsg.setPipe(pipe);
+            ringBuffer.publishEvent(new CarbonEventPublisher(cMsg,trgId));
+        } else {
             HTTPContentChunk chunk;
             if (cMsg != null) {
                 if (msg instanceof LastHttpContent) {
@@ -92,5 +92,11 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) {
         log.debug("Target channel closed.");
     }
+
+    public void setCallback(CarbonCallback callback) {
+        this.callback = callback;
+    }
+
+
 
 }

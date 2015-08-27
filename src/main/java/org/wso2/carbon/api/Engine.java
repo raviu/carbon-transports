@@ -21,8 +21,7 @@ public interface Engine {
 
     boolean init(TransportSender sender);
 
-    boolean receive(CarbonMessage msg, CarbonCallback callback);
+    boolean receive(CarbonMessage msg, CarbonCallback callback) throws Exception;
 
-    TransportSender getSender();
 
 }

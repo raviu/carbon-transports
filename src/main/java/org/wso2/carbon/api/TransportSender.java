@@ -17,12 +17,10 @@
  */
 package org.wso2.carbon.api;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.apache.log4j.Logger;
 
-public abstract class TransportSender<T> {
-
-    private Map<T, CarbonCallback> callbackMap = new HashMap<T, CarbonCallback>();
+public abstract class TransportSender {
+    private static Logger log = Logger.getLogger(TransportSender.class);
 
     private String protocol;
     private Engine engine;
@@ -46,23 +44,5 @@ public abstract class TransportSender<T> {
     public abstract boolean init();
 
     public abstract boolean send(CarbonMessage msg, CarbonCallback callback);
-
-    public CarbonCallback getCallback(T obj) {
-        return callbackMap.get(obj);
-    }
-
-    public CarbonCallback consumeCallback(T obj) {
-        CarbonCallback c = getCallback(obj);
-        removeCallback(obj);
-        return c;
-    }
-
-    public void putCallback(T obj, CarbonCallback callback) {
-        callbackMap.put(obj, callback);
-    }
-
-    public void removeCallback(T obj) {
-        callbackMap.remove(obj);
-    }
 
 }

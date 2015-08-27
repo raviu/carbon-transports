@@ -22,6 +22,7 @@ import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.common.CarbonMessageImpl;
+import org.wso2.carbon.http.netty.common.Constants;
 
 public class POCMediationEngine implements org.wso2.carbon.api.Engine {
     private static Logger log = Logger.getLogger(POCMediationEngine.class);
@@ -33,12 +34,12 @@ public class POCMediationEngine implements org.wso2.carbon.api.Engine {
         this.sender = sender;
         sender.setEngine(this);
     }
-
     public boolean init(TransportSender sender) {
         return true;
     }
 
-    public boolean receive(CarbonMessage msg, final CarbonCallback responseCallback) {
+
+    public boolean receive(CarbonMessage msg, final CarbonCallback responseCallback) throws Exception {
 
         CarbonMessage outMsg = new CarbonMessageImpl(ENGINE_PROTOCOL);
         outMsg.setPipe(msg.getPipe());
@@ -47,19 +48,15 @@ public class POCMediationEngine implements org.wso2.carbon.api.Engine {
         outMsg.setURI(POCController.props.getProperty("proxy_to_uri", "/services/echo"));
         outMsg.setProperties(msg.getProperties());
         outMsg.setProperty(ENGINE_PROTOCOL, "Custom-Header", "PerfTest");
+
         CarbonCallback callbackNew = new CarbonCallback() {
             public void done(CarbonMessage cMsg) {
-                log.info("This is a test!");
+                //log.info("This is a test!");
                 responseCallback.done(cMsg);
             }
         };
-        sender.send(outMsg, callbackNew);
-
+        sender.send(outMsg,callbackNew);
         return true;
     }
 
-    @Override
-    public TransportSender getSender() {
-        return sender;
-    }
 }

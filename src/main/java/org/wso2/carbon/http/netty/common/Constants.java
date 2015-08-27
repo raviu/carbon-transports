@@ -28,18 +28,37 @@ public class Constants {
 
     public static final String HTTP_STATUS_CODE = "HTTP_STATUS_CODE";
 
-    public static final String SOURCE_PIPE = "SourcePipe";
-
-    public static final String TARGET_PIPE = "TargetPipe";
-
     public static final String CHNL_HNDLR_CTX = "CHNL_HNDLR_CTX";
 
     public static final String SRC_HNDLR = "SRC_HNDLR";
+
+    public static final String HEADERS ="Headers";
+
+    public static final String BODY = "Body";
+
+    public static final String TRANSPORT_SENDER = "Sender";
+
+    public static final String ENGINE = "Engine";
+
+
+    public static final String TRG_INIT = "TRG_INIT";
+
 
     public static final String STATE_TRANSITION = "STATE_TRANSITION";
 
     public static final String STATE_STARTED = "STATE_STARTED";
 
     public static final String STATE_STOPPED = "STATE_STOPPED";
+
+    public static final String RESPONSE_CALLBACK = "RESPONSE_CALLBACK";
+
+    public static final String EVENT_LOOP ="EventLoop";
+
+    public static final String CLASS = "CLASS";
+
+    public static final String DISRUPTOR = "Disruptor";
+
+    public static final String PIPE = "Pipe";
+
 
 }

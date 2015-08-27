@@ -17,26 +17,33 @@
  */
 package org.wso2.carbon.http.netty.sender;
 
-import io.netty.channel.ChannelHandlerContext;
+import com.lmax.disruptor.RingBuffer;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequestEncoder;
 import io.netty.handler.codec.http.HttpResponseDecoder;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.api.TransportSender;
+
+
+
 
 public class TargetInitializer extends ChannelInitializer<SocketChannel> {
     private static Logger log = Logger.getLogger(TargetInitializer.class);
 
     protected static final String HANDLER = "handler";
 
-    private TransportSender sender;
-    private volatile ChannelHandlerContext ctx;
 
-    public TargetInitializer(TransportSender sender, ChannelHandlerContext ctx) {
-        this.sender = sender;
-        this.ctx = ctx;
+    private TargetHandler handler;
+
+    private RingBuffer ringBuffer;
+
+    private int channelId;
+
+
+    public TargetInitializer(RingBuffer ringBuffer ,int channelId ) {
+        this.ringBuffer = ringBuffer;
+        this.channelId = channelId;
     }
 
     @Override
@@ -44,7 +51,12 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline p = ch.pipeline();
         p.addLast("decoder", new HttpResponseDecoder());
         p.addLast("encoder", new HttpRequestEncoder());
-//        p.addLast("aggegator", new HttpObjectAggregator(512 * 1024));
-        p.addLast(HANDLER, new TargetHandler(sender, ctx));
+        handler =   new TargetHandler(ringBuffer,channelId);
+        p.addLast(HANDLER, handler);
+        }
+
+    public TargetHandler getTargetHandler() {
+        return handler;
+
     }
 }

@@ -5,8 +5,7 @@ import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.impl.DefaultAsyncProducer;
 import org.apache.camel.util.ObjectHelper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.common.CarbonMessageImpl;
@@ -22,12 +21,13 @@ import java.util.Map;
  */
 public class CamelMediationProducer extends DefaultAsyncProducer {
 
-    private static final transient Log log = LogFactory.getLog(CamelMediationProducer.class);
+    private static Logger log = Logger.getLogger(CamelMediationProducer.class);
 
     private CamelMediationEngine engine;
     private String host;
     private int port;
     private String uri;
+    private CarbonCamelMessageUtil carbonCamelMessageUtil;
 
     public CamelMediationProducer(CamelMediationEndpoint endpoint, CamelMediationEngine engine) {
         super(endpoint);
@@ -37,6 +37,7 @@ public class CamelMediationProducer extends DefaultAsyncProducer {
             host = url.getHost();
             port = url.getPort();
             uri = url.getPath();
+            carbonCamelMessageUtil = endpoint.getCarbonCamelMessageUtil();
         } catch (MalformedURLException e) {
             log.error("Could not generate endpoint url for : " + getEndpoint().getEndpointKey());
         }
@@ -44,10 +45,10 @@ public class CamelMediationProducer extends DefaultAsyncProducer {
 
     public boolean process(Exchange exchange, AsyncCallback callback) {
         //change the header parameters according to the routed endpoint url
-        setCarbonHeaders(exchange);
-        engine.getSender()
-              .send(exchange.getIn().getBody(CarbonMessageImpl.class), new NettyHttpBackEndCallback
-                      (exchange, callback));
+        carbonCamelMessageUtil.setCarbonHeadersToBackendRequest(exchange, host, port, uri);
+        //setCarbonHeaders(exchange);
+        engine.getSender().send(exchange.getIn().getBody(CarbonMessageImpl.class),
+                                new NettyHttpBackEndCallback(exchange, callback));
         return false;
     }
 
@@ -71,7 +72,7 @@ public class CamelMediationProducer extends DefaultAsyncProducer {
     }
 
     @Override public Endpoint getEndpoint() {
-        return (CamelMediationEndpoint) super.getEndpoint();
+        return super.getEndpoint();
     }
 
     private class NettyHttpBackEndCallback implements CarbonCallback {
@@ -83,12 +84,14 @@ public class CamelMediationProducer extends DefaultAsyncProducer {
             this.callback = callback;
         }
 
+        //This will be called when the backend response arrived
         @Override public void done(CarbonMessage cMsg) {
             if (cMsg != null) {
                 Map<String, Object> transportHeaders =
                         (Map<String, Object>) cMsg.getProperty(Constants.TRANSPORT_HEADERS);
                 if (transportHeaders != null) {
-                    exchange.getOut().setHeaders(transportHeaders);
+                    carbonCamelMessageUtil.setCamelHeadersToBackendResponse(exchange, transportHeaders);
+                    //exchange.getOut().setHeaders(transportHeaders);
                     exchange.getOut().setBody(cMsg);
                 } else {
                     log.warn("Backend response : Received empty headers in carbon message...");

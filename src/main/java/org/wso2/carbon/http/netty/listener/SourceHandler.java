@@ -18,7 +18,6 @@
 package org.wso2.carbon.http.netty.listener;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -34,6 +33,7 @@ import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.HTTPContentChunk;
+import org.wso2.carbon.http.netty.common.HttpRoute;
 import org.wso2.carbon.http.netty.common.Pipe;
 import org.wso2.carbon.http.netty.common.Util;
 import org.wso2.carbon.http.netty.common.Worker;
@@ -41,6 +41,8 @@ import org.wso2.carbon.http.netty.common.WorkerPool;
 import org.wso2.carbon.http.netty.sender.TargetInitializer;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SourceHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(SourceHandler.class);
@@ -48,8 +50,9 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private Engine engine;
     private CarbonMessage cMsg;
     private Bootstrap bootstrap;
-    private ChannelFuture channelFuture;
-    private Channel channel;
+//    private ChannelFuture channelFuture;
+//    private Channel channel;
+    private Map<String, ChannelFuture> channelFutureMap = new HashMap<>();
 
     private TargetInitializer tInit;
     private CarbonCallback responseCallback;
@@ -125,20 +128,33 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         this.bootstrap = bootstrap;
     }
 
-    public ChannelFuture getChannelFuture() {
-        return channelFuture;
+//    public ChannelFuture getChannelFuture() {
+//        return channelFuture;
+//    }
+
+//    public void setChannelFuture(ChannelFuture channelFuture) {
+//        this.channelFuture = channelFuture;
+//    }
+
+//    public Channel getChannel() {
+//        return channel;
+//    }
+//
+//    public void setChannel(Channel channel) {
+//        this.channel = channel;
+//    }
+
+    public void addChannelFuture(HttpRoute route, ChannelFuture future) {
+        channelFutureMap.put(route.toString(), future);
     }
 
-    public void setChannelFuture(ChannelFuture channelFuture) {
-        this.channelFuture = channelFuture;
+    public void removeChannelFuture(HttpRoute route) {
+        log.debug("Removing channel future from map");
+        channelFutureMap.remove(route.toString());
     }
 
-    public Channel getChannel() {
-        return channel;
+    public ChannelFuture getChannelFuture(HttpRoute route) {
+        return channelFutureMap.get(route.toString());
     }
-
-    public void setChannel(Channel channel) {
-        this.channel = channel;
-    }
-
 }
+

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.wso2.carbon</groupId>
-    <artifactId>carbon-netty-http-transport-with-camel</artifactId>
+    <artifactId>carbon-netty-http-transport</artifactId>
     <version>1.0.0</version>
 
     <packaging>bundle</packaging>
@@ -159,7 +159,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.wso2.carbon.mediation.camel.Test</mainClass>
+                            <mainClass>org.wso2.carbon.controller.POCController</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

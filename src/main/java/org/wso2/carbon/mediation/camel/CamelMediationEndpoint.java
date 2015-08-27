@@ -2,6 +2,7 @@ package org.wso2.carbon.mediation.camel;
 
 import org.apache.camel.*;
 import org.apache.camel.impl.DefaultEndpoint;
+import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.controller.CamelMediationEngine;
 
@@ -12,9 +13,12 @@ import java.util.Map;
  */
 public class CamelMediationEndpoint extends DefaultEndpoint {
 
-    private CamelMediationEngine engine;
+    private static Logger log = Logger.getLogger(CamelMediationEndpoint.class);
 
-    public CamelMediationEndpoint() {
+    private CamelMediationEngine engine;
+    private CarbonCamelMessageUtil carbonCamelMessageUtil;
+
+/*    public CamelMediationEndpoint() {
     }
 
     public CamelMediationEndpoint(String uri, CamelMediationComponent component) {
@@ -23,11 +27,12 @@ public class CamelMediationEndpoint extends DefaultEndpoint {
 
     public CamelMediationEndpoint(String endpointUri) {
         super(endpointUri);
-    }
+    }*/
 
     public CamelMediationEndpoint(String uri, CamelMediationComponent component, CamelMediationEngine engine) {
         super(uri, component);
         this.engine = engine;
+        carbonCamelMessageUtil = new CarbonCamelMessageUtil();
     }
 
     public Producer createProducer() throws Exception {
@@ -54,13 +59,19 @@ public class CamelMediationEndpoint extends DefaultEndpoint {
 
     public Exchange createExchange(Map<String, Object> headers, CarbonMessage cmsg) {
         Exchange exchange = createExchange();
-        addHeadersToExchange(exchange.getIn(), headers);
+        carbonCamelMessageUtil.setCamelHeadersToClientRequest(exchange, headers, cmsg);
+        //carbonCamelMessageUtil.setCamelRequestBody(exchange, cmsg);
+        //addHeadersToExchange(exchange.getIn(), headers);
         exchange.getIn().setBody(cmsg);
         return exchange;
     }
 
     private void addHeadersToExchange(Message in, Map<String, Object> headers) {
         in.setHeaders(headers);
+    }
+
+    public CarbonCamelMessageUtil getCarbonCamelMessageUtil() {
+        return carbonCamelMessageUtil;
     }
 
 }

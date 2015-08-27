@@ -37,17 +37,16 @@ public class CamelMediationEngine implements org.wso2.carbon.api.Engine {
     }
 
     //Client messages will receive here
-    public boolean receive(CarbonMessage cmsg, CarbonCallback requestCallback) {
+    public boolean receive(CarbonMessage cMsg, CarbonCallback requestCallback) {
         //start mediation
         if (log.isDebugEnabled()) {
-            log.debug("Channel: {} received body: {}" + cmsg.getId().toString());
+            log.debug("Channel: {} received body: {}" + cMsg.getId().toString());
         }
-        Map<String, Object> transportHeaders =
-                (Map<String, Object>) cmsg.getProperty(Constants.TRANSPORT_HEADERS);
+        Map<String, Object> transportHeaders = (Map<String, Object>) cMsg.getProperty(Constants.TRANSPORT_HEADERS);
         CamelMediationConsumer consumer =
-                decideConsumer(cmsg.getProtocol(), (String) transportHeaders.get("Host"), cmsg.getURI());
+                decideConsumer(cMsg.getProtocol(), (String) transportHeaders.get("Host"), cMsg.getURI());
         if (consumer != null) {
-            final Exchange exchange = consumer.getEndpoint().createExchange(transportHeaders, cmsg);
+            final Exchange exchange = consumer.getEndpoint().createExchange(transportHeaders, cMsg);
             exchange.setPattern(ExchangePattern.InOut);
             // we want to handle the UoW
             try {
@@ -69,10 +68,11 @@ public class CamelMediationEngine implements org.wso2.carbon.api.Engine {
                                        final CarbonCallback requestCallback) {
         consumer.getAsyncProcessor().process(exchange, new AsyncCallback() {
             @Override public void done(boolean done) {
+
                 CarbonMessageImpl mediatedResponse = exchange.getOut().getBody(CarbonMessageImpl.class);
                 Map<String, Object> mediatedHeaders = exchange.getOut().getHeaders();
-                mediatedResponse
-                        .setProperty(Constants.TRANSPORT_HEADERS, mediatedHeaders);
+                mediatedResponse.setProperty(Constants.TRANSPORT_HEADERS, mediatedHeaders);
+
                 try {
                     requestCallback.done(mediatedResponse);
                 } finally {

@@ -70,7 +70,7 @@ public class POCJaxRSEngine implements org.wso2.carbon.api.Engine {
         return true;
     }
 
-    @Override
+
     public TransportSender getSender() {
         return this.sender;
     }

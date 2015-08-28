@@ -9,7 +9,7 @@ import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
-import org.wso2.carbon.http.netty.sender.Sender;
+import org.wso2.carbon.http.netty.sender.NettySender;
 import org.wso2.carbon.mediation.camel.CamelMediationConsumer;
 
 import java.util.Map;
@@ -27,9 +27,8 @@ public class CamelMediationEngine implements org.wso2.carbon.api.Engine {
     private final ConcurrentHashMap<String, CamelMediationConsumer> consumers =
             new ConcurrentHashMap<String, CamelMediationConsumer>();
 
-    public CamelMediationEngine(Sender sender) {
+    public CamelMediationEngine(NettySender sender) {
         this.sender = sender;
-        this.sender.setEngine(this);
     }
 
     @Override public boolean init(TransportSender sender) {
@@ -60,7 +59,7 @@ public class CamelMediationEngine implements org.wso2.carbon.api.Engine {
         return true;
     }
 
-    @Override public TransportSender getSender() {
+    public TransportSender getSender() {
         return sender;
     }
 

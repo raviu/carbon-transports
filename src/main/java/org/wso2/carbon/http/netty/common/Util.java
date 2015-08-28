@@ -38,7 +38,7 @@ public class Util {
     public static Map<String, String> getHeaders(HttpMessage message) {
         Map<String, String> headers = new HashMap<String, String>();
         if (message.headers() != null) {
-            for (String k: message.headers().names()) {
+            for (String k : message.headers().names()) {
                 headers.put(k, message.headers().get(k));
             }
         }
@@ -48,7 +48,7 @@ public class Util {
 
     public static void setHeaders(HttpMessage message, Map<String, String> headers) {
         HttpHeaders httpHeaders = message.headers();
-        for (Map.Entry<String, String> e: headers.entrySet()) {
+        for (Map.Entry<String, String> e : headers.entrySet()) {
             httpHeaders.add(e.getKey(), e.getValue());
         }
     }
@@ -74,15 +74,15 @@ public class Util {
 
     public static HttpResponse createHttpResponse(CarbonMessage msg) {
         HttpVersion httpVersion = new HttpVersion(Util.getStringValue(msg,
-                Constants.HTTP_VERSION, HTTP_1_1.text()), true);
+                                                                      Constants.HTTP_VERSION, HTTP_1_1.text()), true);
 
         int statusCode = (Integer) Util.getIntValue(msg, Constants.HTTP_STATUS_CODE, 200);
 
         HttpResponseStatus httpResponseStatus = new HttpResponseStatus(statusCode,
-                HttpResponseStatus.valueOf(statusCode).reasonPhrase());
+                                                                       HttpResponseStatus.valueOf(statusCode).reasonPhrase());
 
         DefaultHttpResponse outgoingResponse = new DefaultHttpResponse(httpVersion,
-                httpResponseStatus, false);
+                                                                       httpResponseStatus, false);
 
         Map<String, String> headerMap = (Map<String, String>) msg.getProperty(Constants.TRANSPORT_HEADERS);
 
@@ -92,12 +92,13 @@ public class Util {
     }
 
     public static HttpRequest createHttpRequest(CarbonMessage msg) {
+
         HttpMethod httpMethod = new HttpMethod((String) msg.getProperty(Constants.HTTP_METHOD));
 
         HttpVersion httpVersion = new HttpVersion((String) msg.getProperty(Constants.HTTP_VERSION), true);
 
         HttpRequest outgoingRequest =
-                new DefaultHttpRequest(httpVersion, httpMethod, msg.getURI(), false);
+                   new DefaultHttpRequest(httpVersion, httpMethod, msg.getURI(), false);
 
         Map headers = (Map) msg.getProperty(Constants.TRANSPORT_HEADERS);
 

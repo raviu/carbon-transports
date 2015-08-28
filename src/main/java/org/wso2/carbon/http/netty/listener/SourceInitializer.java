@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.http.netty.listener;
 
+
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -25,14 +26,21 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
 
+/**
+ * A class that responsible for create server side channels.
+ */
 public class SourceInitializer extends ChannelInitializer<SocketChannel> {
 
     private static final Logger log = Logger.getLogger(SourceInitializer.class);
 
     private Engine engine;
+    private int noOfChannels;
+    private int queueSize;
+    private Object lock = new Object();
 
-    public SourceInitializer(Engine engine) {
+    public SourceInitializer(Engine engine , int queueSize) {
         this.engine = engine;
+        this.queueSize = queueSize;
     }
 
     @Override
@@ -40,12 +48,21 @@ public class SourceInitializer extends ChannelInitializer<SocketChannel> {
         if (log.isDebugEnabled()) {
             log.info("Initializing source channel pipeline");
         }
+     //   Disruptor disruptor = DisruptorFactory.getDisruptorFromMap();
         ChannelPipeline p = ch.pipeline();
         p.addLast("decoder", new HttpRequestDecoder());
         p.addLast("encoder", new HttpResponseEncoder());
+
+    //    p.addLast("handler", new SourceHandler(engine,null));
+
         //TODO Test adding event executor group as below
 //        p.addLast(new DefaultEventExecutorGroup(10), "handler", new SourceHandler(engine));
-        p.addLast("handler", new SourceHandler(engine));
+        synchronized (lock){
+            noOfChannels++;
+            p.addLast("handler", new SourceHandler(engine,noOfChannels ,queueSize));
+        }
+
+
     }
 
 }

@@ -17,6 +17,10 @@
  */
 package org.wso2.carbon.controller;
 
+import io.netty.channel.ChannelInitializer;
+import org.apache.camel.CamelContext;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.impl.DefaultCamelContext;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.disruptor.DisruptorFactory;
@@ -30,17 +34,23 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class POCController {
 
     public static Properties props = new Properties();
     private static String ID = "HTTP-netty";
+    public static NettyListener.Config nettyConfig;
+    public static Engine engine;
 
-    public static void main(String[] args) {
 
+    public static void main(String[] args) throws Exception {
+   //     Engine engine = null;
 
         if (args.length == 2) {
+
 
             File propFile = new File(args[1]);
             try {
@@ -68,20 +78,58 @@ public class POCController {
                                              Integer.valueOf(props.getProperty("no_of_disurptors", "1")),
                                              Integer.valueOf(props.getProperty("no_of_eventHandlers_per_disruptor", "1")),
                                              waitstrategy1);
-            NettyListener.Config nettyConfig = new NettyListener.Config("netty-gw").setQueuSize(Integer.valueOf(props.getProperty("queue_size", "1024"))).
+             nettyConfig = new NettyListener.Config("netty-gw").setQueuSize(Integer.valueOf(props.getProperty("queue_size", "1024"))).
                        setPort(Integer.valueOf(props.getProperty("uport", "8585")));
             NettyListener nettyListener = new NettyListener(nettyConfig);
             ArrayList<InetSocketAddress> inetSocketAddresses = new ArrayList<>();
             inetSocketAddresses.add(new InetSocketAddress(props.getProperty("proxy_to_host", "localhost"),
                                                           Integer.parseInt(props.getProperty("proxy_to_port", "8280"))));
-            NettySender.Config config = new NettySender.Config("netty-gw-sender").setQueueSize(Integer.parseInt(props.getProperty("queue_size")))
+            NettySender.Config config = new NettySender.Config("netty-gw-sender").setQueueSize(Integer.parseInt(props.getProperty("queue_size","1024")))
                        .setWorkerGroup(nettyConfig.getWorkerGroup());
             config.setQueueSize(nettyConfig.getQueueSize());
             TransportSender sender = new NettySender(config);
-            Engine engine = new POCMediationEngine(sender);
-            nettyListener.setDefaultInitializer(new SourceInitializer(engine, nettyConfig.getQueueSize()));
+            if (args[0].equals("jaxrs")) {
+                engine = new POCJaxRSEngine(sender);
+                nettyListener.setDefaultInitializer(new SourceInitializer(engine, config.getQueueSize()));
 
-            nettyListener.start();
+                nettyListener.start();
+
+            } else if ((args[0].equals("camel"))) {
+                CamelContext context = new DefaultCamelContext();
+                context.disableJMX();
+
+                context.addRoutes(new RouteBuilder() {
+                    public void configure() {
+
+                        from("wso2-gw:http://204.13.85.2:9090/service")
+                                   .choice()
+                                   .when(header("routeId").regex("r1"))
+                                   .to("wso2-gw:http://204.13.85.5:5050/services/echo")
+                                   .when(header("routeId").regex("r2"))
+                                   .to("wso2-gw:http://204.13.85.5:6060/services/echo")
+                                   .otherwise()
+                                   .to("wso2-gw:http://204.13.85.5:7070/services/echo");
+
+                        from("wso2-gw:http://localhost:8585/service")
+                                   .choice()
+                                   .when(header("routeId").regex("r1"))
+                                   .to("wso2-gw:http://localhost:8280/services/echo")
+                                   .when(header("routeId").regex("r2"))
+                                   .to("wso2-gw:http://localhost:6060/services/echo")
+                                   .otherwise()
+                                   .to("wso2-gw:http://localhost:8280/services/echo");
+
+                    }
+                });
+                context.start();
+            } else {
+                engine = new DefaultMediationEngine(sender);
+                nettyListener.setDefaultInitializer(new SourceInitializer(engine, config.getQueueSize()));
+
+                nettyListener.start();
+
+            }
+
 
             while (true) {
                 try {
@@ -90,6 +138,7 @@ public class POCController {
                     e.printStackTrace();
                 }
             }
+
         } else {
             showUsage();
         }
@@ -100,6 +149,21 @@ public class POCController {
         System.out.println("Usage: java -jar server.jar <default |  " +
                            "jaxrs> /path/to/properties.prop");
         System.out.println("\n");
+    }
+
+    public Engine startPOCController() {
+        NettySender.Config config = new NettySender.Config("netty-gw-sender").setQueueSize(Integer.parseInt(props.getProperty("queue_size","1024")))
+                   .setWorkerGroup(nettyConfig.getWorkerGroup());
+        NettySender sender = new NettySender(config);
+       engine = new CamelMediationEngine(sender);
+
+        Map<String, ChannelInitializer> channelInitializers = new HashMap<String, ChannelInitializer>();
+        channelInitializers.put("SourceInitializer", new SourceInitializer(engine,config.getQueueSize()));
+        NettyListener nettyListener = new NettyListener(nettyConfig);
+        nettyListener.setDefaultInitializer(new SourceInitializer(engine,nettyConfig.getQueueSize()));
+        nettyListener.start();
+
+        return engine;
     }
 
 }

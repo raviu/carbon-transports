@@ -24,13 +24,13 @@ import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.http.netty.common.Constants;
 
-public class POCMediationEngine implements org.wso2.carbon.api.Engine {
-    private static Logger log = Logger.getLogger(POCMediationEngine.class);
+public class DefaultMediationEngine implements org.wso2.carbon.api.Engine {
+    private static Logger log = Logger.getLogger(DefaultMediationEngine.class);
 
     private static String ENGINE_PROTOCOL = "http";
     private TransportSender sender;
 
-    public POCMediationEngine(TransportSender sender) {
+    public DefaultMediationEngine(TransportSender sender) {
         this.sender = sender;
         sender.setEngine(this);
     }
@@ -47,8 +47,7 @@ public class POCMediationEngine implements org.wso2.carbon.api.Engine {
         outMsg.setPort(Integer.valueOf(POCController.props.getProperty("proxy_to_port", "8280")));
         outMsg.setURI(POCController.props.getProperty("proxy_to_uri", "/services/echo"));
         outMsg.setProperties(msg.getProperties());
-        outMsg.setProperty(ENGINE_PROTOCOL, "Custom-Header", "PerfTest");
-
+        outMsg.setProperty("Custom-Header", "PerfTest");
         CarbonCallback callbackNew = new CarbonCallback() {
             public void done(CarbonMessage cMsg) {
                 //log.info("This is a test!");

@@ -31,7 +31,6 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
 
     protected static final String HANDLER = "handler";
 
-
     private TargetHandler handler;
 
     private RingBuffer ringBuffer;
@@ -53,11 +52,11 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
         p.addLast("decoder", new HttpResponseDecoder());
         p.addLast("encoder", new HttpRequestEncoder());
         handler = new TargetHandler(ringBuffer, channelId, queuesize);
+
         p.addLast(HANDLER, handler);
     }
 
     public TargetHandler getTargetHandler() {
         return handler;
-
     }
 }

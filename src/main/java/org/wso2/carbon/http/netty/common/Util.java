@@ -54,7 +54,7 @@ public class Util {
     }
 
     public static String getStringValue(CarbonMessage msg, String key, String defaultValue) {
-        String value = (String) msg.getProperty(Constants.PROTOCOL_NAME, key);
+        String value = (String) msg.getProperty(key);
         if (value == null) {
             return defaultValue;
         }
@@ -63,7 +63,7 @@ public class Util {
     }
 
     public static int getIntValue(CarbonMessage msg, String key, int defaultValue) {
-        Integer value = (Integer) msg.getProperty(Constants.PROTOCOL_NAME, key);
+        Integer value = (Integer) msg.getProperty(key);
         if (value == null) {
             return defaultValue;
         }
@@ -84,8 +84,7 @@ public class Util {
         DefaultHttpResponse outgoingResponse = new DefaultHttpResponse(httpVersion,
                                                                        httpResponseStatus, false);
 
-        Map<String, String> headerMap = (Map<String, String>) msg.getProperty(
-                   Constants.PROTOCOL_NAME, Constants.TRANSPORT_HEADERS);
+        Map<String, String> headerMap = (Map<String, String>) msg.getProperty(Constants.TRANSPORT_HEADERS);
 
         Util.setHeaders(outgoingResponse, headerMap);
 
@@ -93,17 +92,15 @@ public class Util {
     }
 
     public static HttpRequest createHttpRequest(CarbonMessage msg) {
-        HttpMethod httpMethod = new HttpMethod((String) msg.getProperty(Constants.PROTOCOL_NAME,
-                                                                        Constants.HTTP_METHOD));
 
-        HttpVersion httpVersion = new HttpVersion((String) msg.getProperty(Constants.PROTOCOL_NAME,
-                                                                           Constants.HTTP_VERSION), true);
+        HttpMethod httpMethod = new HttpMethod((String) msg.getProperty(Constants.HTTP_METHOD));
+
+        HttpVersion httpVersion = new HttpVersion((String) msg.getProperty(Constants.HTTP_VERSION), true);
 
         HttpRequest outgoingRequest =
                    new DefaultHttpRequest(httpVersion, httpMethod, msg.getURI(), false);
 
-        Map headers = (Map) msg.getProperty(Constants.PROTOCOL_NAME,
-                                            Constants.TRANSPORT_HEADERS);
+        Map headers = (Map) msg.getProperty(Constants.TRANSPORT_HEADERS);
 
         Util.setHeaders(outgoingRequest, headers);
 

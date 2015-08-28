@@ -61,10 +61,10 @@ public class NettySender extends TransportSender {
     @Override
     public boolean send(CarbonMessage msg, CarbonCallback callback) {
         final ChannelHandlerContext inboundCtx = (ChannelHandlerContext)
-                   msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
+                   msg.getProperty(Constants.CHNL_HNDLR_CTX);
         final HttpRequest httpRequest = Util.createHttpRequest(msg);
         final Pipe pipe = msg.getPipe();
-        final SourceHandler srcHandler = (SourceHandler) msg.getProperty(Constants.PROTOCOL_NAME, Constants.SRC_HNDLR);
+        final SourceHandler srcHandler = (SourceHandler) msg.getProperty(Constants.SRC_HNDLR);
         InetSocketAddress address = new InetSocketAddress(msg.getHost(), msg.getPort());
         final HttpRoute route = new HttpRoute(msg.getHost(), msg.getPort());
 // TODO use src handler map (host port) and condition to use pool for throttling.
@@ -75,7 +75,7 @@ public class NettySender extends TransportSender {
                         channelCorrelator++;
                     }
                 }
-                RingBuffer ringBuffer = (RingBuffer) msg.getProperty(Constants.PROTOCOL_NAME, Constants.DISRUPTOR);
+                RingBuffer ringBuffer = (RingBuffer) msg.getProperty(Constants.DISRUPTOR);
                 TargetInitializer targetInitializer = new TargetInitializer(ringBuffer, channelCorrelator,config.getQueueSize());
                 Bootstrap bootstrap = getNewBootstrap(inboundCtx, targetInitializer);
                 ChannelFuture future = bootstrap.connect(address);

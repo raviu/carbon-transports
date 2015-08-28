@@ -28,6 +28,7 @@ public class CarbonDisruptorEventHandler extends DisruptorEventHandler {
 
    private int eventHandlerid;
 
+
     public CarbonDisruptorEventHandler(int eventHandlerid){
         this.eventHandlerid = eventHandlerid;
     }
@@ -39,14 +40,15 @@ public class CarbonDisruptorEventHandler extends DisruptorEventHandler {
         CarbonMessage carbonMessage = (CarbonMessage) carbonDisruptorEvent.getEvent();
         int messageID = carbonDisruptorEvent.getEventId();
         if (canProcess(DisruptorFactory.noOfEventHandlersPerDisruptor(), eventHandlerid, messageID)) {
-            Engine engine = (Engine) carbonMessage.getProperty(Constants.PROTOCOL_NAME, Constants.ENGINE);
-            if (carbonMessage.getDirection() == CarbonMessage.IN) {
-                CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.PROTOCOL_NAME, Constants.RESPONSE_CALLBACK);
-                engine.receive(carbonMessage, carbonCallback);
+           Engine engine = (Engine) carbonMessage.getProperty( Constants.ENGINE);
+           if (carbonMessage.getDirection() == CarbonMessage.IN) {
+               CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.RESPONSE_CALLBACK);
+              engine.receive(carbonMessage, carbonCallback);
             } else {
-                CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.PROTOCOL_NAME, Constants.RESPONSE_CALLBACK);
-                carbonCallback.done(carbonMessage);
+              CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.RESPONSE_CALLBACK);
+               carbonCallback.done(carbonMessage);
             }
+
 
         }
     }

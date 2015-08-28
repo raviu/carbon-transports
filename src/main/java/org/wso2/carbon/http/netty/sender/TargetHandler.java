@@ -45,6 +45,8 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     private int queuesize;
     private int trgId;
 
+
+
     public TargetHandler(RingBuffer ringBuffer, int trgId , int queuesize) {
         this.ringBuffer = ringBuffer;
         this.trgId = trgId;
@@ -63,14 +65,13 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             cMsg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
+
             cMsg.setDirection(CarbonMessage.OUT);
-            cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.RESPONSE_CALLBACK, callback);
+            cMsg.setProperty(Constants.RESPONSE_CALLBACK, callback);
             HttpResponse httpResponse = (HttpResponse) msg;
             cMsg.setDirection(CarbonMessageImpl.OUT);
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                             Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                             Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
+            cMsg.setProperty(Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
+            cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
             pipe = new Pipe("Target Pipe" , queuesize);
             cMsg.setPipe(pipe);
             ringBuffer.publishEvent(new CarbonEventPublisher(cMsg, trgId));
@@ -97,6 +98,5 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     public void setCallback(CarbonCallback callback) {
         this.callback = callback;
     }
-
 
 }

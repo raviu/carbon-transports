@@ -16,7 +16,9 @@
 
 package org.wso2.carbon.http.netty.listener;
 
+
 import com.lmax.disruptor.RingBuffer;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpContent;
@@ -32,6 +34,7 @@ import org.wso2.carbon.disruptor.publisher.CarbonEventPublisher;
 import org.wso2.carbon.http.netty.common.*;
 import org.wso2.carbon.http.netty.sender.TargetChanel;
 import org.wso2.carbon.http.netty.sender.TargetHandler;
+
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -64,7 +67,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
         disruptor = DisruptorFactory.getDisruptorFromMap();
-        this.ctx=ctx;
+        this.ctx = ctx;
     }
 
     @Override
@@ -73,24 +76,21 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             cMsg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
-            cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX, this.ctx);
-            cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.SRC_HNDLR, this);
-            cMsg.setProperty(Constants.PROTOCOL_NAME,Constants.ENGINE,engine);
-            cMsg.setProperty(Constants.PROTOCOL_NAME,Constants.SRC_HNDLR,this);
+            cMsg.setProperty(Constants.CHNL_HNDLR_CTX, this.ctx);
+            cMsg.setProperty(Constants.SRC_HNDLR, this);
+            cMsg.setProperty(Constants.ENGINE, engine);
+            cMsg.setProperty(Constants.SRC_HNDLR, this);
             responseCallback = new ResponseCallback(this.ctx);
-            cMsg.setProperty(Constants.PROTOCOL_NAME,Constants.RESPONSE_CALLBACK ,responseCallback);
+            cMsg.setProperty(Constants.RESPONSE_CALLBACK, responseCallback);
             HttpRequest httpRequest = (HttpRequest) msg;
             cMsg.setURI(httpRequest.getUri());
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                             Constants.HTTP_VERSION, httpRequest.getProtocolVersion().text());
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                             Constants.HTTP_METHOD, httpRequest.getMethod().name());
-            cMsg.setProperty(Constants.PROTOCOL_NAME,
-                             Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));;
-            pipe = new Pipe("Source Pipe" , queueSize);
+            cMsg.setProperty(Constants.HTTP_VERSION, httpRequest.getProtocolVersion().text());
+            cMsg.setProperty(Constants.HTTP_METHOD, httpRequest.getMethod().name());
+            cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));;
+            pipe = new Pipe("Source Pipe", queueSize);
             cMsg.setPipe(pipe);
-            cMsg.setProperty(Constants.PROTOCOL_NAME,Constants.DISRUPTOR,disruptor);
-            disruptor.publishEvent(new CarbonEventPublisher(cMsg,srcId));
+            cMsg.setProperty(Constants.DISRUPTOR, disruptor);
+            disruptor.publishEvent(new CarbonEventPublisher(cMsg, srcId));
         } else {
             HTTPContentChunk chunk;
             if (cMsg != null) {
@@ -119,23 +119,28 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     public void addChannelFuture(HttpRoute route, TargetChanel targetChanel) {
         channelFutureMap.put(route.toString(), targetChanel);
     }
+
     public void removeChannelFuture(HttpRoute route) {
         log.debug("Removing channel future from map");
         channelFutureMap.remove(route.toString());
     }
+
     public TargetChanel getChannelFuture(HttpRoute route) {
         return channelFutureMap.get(route.toString());
     }
 
-    public void setTargetHandler(TargetHandler targetHandler){
-        this.targetHandler=targetHandler;
+    public void setTargetHandler(TargetHandler targetHandler) {
+        this.targetHandler = targetHandler;
     }
 
     public TargetHandler getTargetHandler() {
         return targetHandler;
     }
 
-    public Object getLock(){
+    public Object getLock() {
         return lock;
     }
 }
+
+
+

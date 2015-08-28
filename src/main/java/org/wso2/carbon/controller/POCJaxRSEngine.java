@@ -49,9 +49,9 @@ public class POCJaxRSEngine implements org.wso2.carbon.api.Engine {
     public boolean receive(CarbonMessage msg, CarbonCallback callback) {
 
         if (msg.getDirection() == CarbonMessageImpl.IN) {
-            log.info(msg.getProperty(ENGINE_PROTOCOL, "HTTP_METHOD") + " "
+            log.info(msg.getProperty("HTTP_METHOD") + " "
                     + msg.getURI()  + " "
-                    + msg.getProperty(ENGINE_PROTOCOL, "HTTP_VERSION"));
+                    + msg.getProperty("HTTP_VERSION"));
 
 
             OMElement incoming = XMLBuilder.buildMessage(msg.getPipe());

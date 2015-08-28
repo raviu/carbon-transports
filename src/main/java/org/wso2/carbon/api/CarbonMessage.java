@@ -56,11 +56,11 @@ public abstract class CarbonMessage {
 
     abstract public void setProtocol(String protocol);
 
-    abstract public Object getProperty(String protocol, String key);
+    abstract public Object getProperty(String key);
 
-    abstract public void setProperty(String protocol, String key, Object value);
+    abstract public void setProperty(String key, Object value);
 
-    abstract public Map<String, Map<String, Object>> getProperties();
+    abstract public Map<String, Object> getProperties();
 
-    abstract public void setProperties(Map<String, Map<String, Object>> properties);
+    abstract public void setProperties(Map<String, Object> properties);
 }

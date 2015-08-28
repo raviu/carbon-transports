@@ -17,7 +17,6 @@
 package org.wso2.carbon.http.netty.listener;
 
 import com.lmax.disruptor.RingBuffer;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpContent;
@@ -27,12 +26,10 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Engine;
-import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.common.CarbonMessageImpl;
 import org.wso2.carbon.disruptor.DisruptorFactory;
 import org.wso2.carbon.disruptor.publisher.CarbonEventPublisher;
 import org.wso2.carbon.http.netty.common.*;
-import org.wso2.carbon.http.netty.sender.NettySender;
 import org.wso2.carbon.http.netty.sender.TargetChanel;
 import org.wso2.carbon.http.netty.sender.TargetHandler;
 
@@ -40,6 +37,9 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A Class responsible for handle handle incoming message through netty inbound pipeline
+ */
 public class SourceHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(SourceHandler.class);
 
@@ -52,11 +52,13 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private Map<String, TargetChanel> channelFutureMap = new HashMap<>();
     private TargetHandler targetHandler;
     private int srcId;
+    private int queueSize;
     private Object lock = new Object();
 
-    public SourceHandler(Engine engine , int srcId) {
+    public SourceHandler(Engine engine, int srcId, int queueSize) {
         this.engine = engine;
         this.srcId = srcId;
+        this.queueSize = queueSize;
     }
 
     @Override
@@ -85,7 +87,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
                              Constants.HTTP_METHOD, httpRequest.getMethod().name());
             cMsg.setProperty(Constants.PROTOCOL_NAME,
                              Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));;
-            pipe = new Pipe("Source Pipe");
+            pipe = new Pipe("Source Pipe" , queueSize);
             cMsg.setPipe(pipe);
             cMsg.setProperty(Constants.PROTOCOL_NAME,Constants.DISRUPTOR,disruptor);
             disruptor.publishEvent(new CarbonEventPublisher(cMsg,srcId));

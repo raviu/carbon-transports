@@ -27,12 +27,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Pipe implements org.wso2.carbon.api.Pipe {
     private static Logger log = Logger.getLogger(Pipe.class);
     private String name = "Buffer";
-    private BlockingQueue<ContentChunk> contentQueue = new LinkedBlockingQueue<ContentChunk>();
+    private int queueSize;
+    private BlockingQueue<ContentChunk> contentQueue ;
     private Map trailingheaders = new ConcurrentHashMap<String, String>();
     private AtomicBoolean isReadComplete = new AtomicBoolean(false);
     private AtomicBoolean isWriteComplete = new AtomicBoolean(false);
-    public Pipe(String name) {
+    public Pipe(String name , int blockingQueueSize) {
         this.name = name;
+        this.queueSize = blockingQueueSize;
+        this.contentQueue = new LinkedBlockingQueue<ContentChunk>(queueSize);
     }
     public ContentChunk getContent() {
         try {

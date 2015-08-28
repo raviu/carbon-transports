@@ -19,6 +19,9 @@ package org.wso2.carbon.http.netty.sender;
 
 import io.netty.channel.ChannelFuture;
 
+/**
+ * A class that encapsulate channel and state
+ */
 public class TargetChanel {
 
 

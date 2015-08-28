@@ -32,17 +32,7 @@ public class Constants {
 
     public static final String SRC_HNDLR = "SRC_HNDLR";
 
-    public static final String HEADERS ="Headers";
-
-    public static final String BODY = "Body";
-
-    public static final String TRANSPORT_SENDER = "Sender";
-
     public static final String ENGINE = "Engine";
-
-
-    public static final String TRG_INIT = "TRG_INIT";
-
 
     public static final String STATE_TRANSITION = "STATE_TRANSITION";
 
@@ -52,13 +42,19 @@ public class Constants {
 
     public static final String RESPONSE_CALLBACK = "RESPONSE_CALLBACK";
 
-    public static final String EVENT_LOOP ="EventLoop";
-
-    public static final String CLASS = "CLASS";
-
     public static final String DISRUPTOR = "Disruptor";
 
-    public static final String PIPE = "Pipe";
+    public static final String BUSY_SPIN = "BUSY_SPIN";
+
+    public static final String BLOCKING_WAIT = "BLOCKING_WAIT";
+
+    public static final String LITE_BLOCKING = "LITE_BLOCKING";
+
+    public static final String PHASED_BACKOFF = "PHASED_BACKOFF";
+
+    public static final String TIME_BLOCKING = "TIME_BLOCKING";
+
+    public static final String QUEUE_SIZE = "QUEUE_SIZE";
 
 
 }

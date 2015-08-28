@@ -26,8 +26,6 @@ import io.netty.handler.codec.http.HttpResponseDecoder;
 import org.apache.log4j.Logger;
 
 
-
-
 public class TargetInitializer extends ChannelInitializer<SocketChannel> {
     private static Logger log = Logger.getLogger(TargetInitializer.class);
 
@@ -38,12 +36,15 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
 
     private RingBuffer ringBuffer;
 
+    private int queuesize;
+
     private int channelId;
 
 
-    public TargetInitializer(RingBuffer ringBuffer ,int channelId ) {
+    public TargetInitializer(RingBuffer ringBuffer, int channelId, int queuesize) {
         this.ringBuffer = ringBuffer;
         this.channelId = channelId;
+        this.queuesize = queuesize;
     }
 
     @Override
@@ -51,9 +52,9 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline p = ch.pipeline();
         p.addLast("decoder", new HttpResponseDecoder());
         p.addLast("encoder", new HttpRequestEncoder());
-        handler =   new TargetHandler(ringBuffer,channelId);
+        handler = new TargetHandler(ringBuffer, channelId, queuesize);
         p.addLast(HANDLER, handler);
-        }
+    }
 
     public TargetHandler getTargetHandler() {
         return handler;

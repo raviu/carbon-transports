@@ -24,7 +24,10 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.api.*;
+import org.wso2.carbon.api.CarbonCallback;
+import org.wso2.carbon.api.CarbonMessage;
+import org.wso2.carbon.api.Pipe;
+import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.HTTPContentChunk;
 import org.wso2.carbon.http.netty.common.HttpRoute;
@@ -33,7 +36,7 @@ import org.wso2.carbon.http.netty.listener.SourceHandler;
 import org.wso2.carbon.http.netty.listener.ssl.SSLConfig;
 
 import java.net.InetSocketAddress;
-import java.util.List;
+
 
 
 public class NettySender extends TransportSender {
@@ -56,32 +59,30 @@ public class NettySender extends TransportSender {
     }
 
     @Override
-    public boolean send(CarbonMessage msg, CarbonCallback callback){
+    public boolean send(CarbonMessage msg, CarbonCallback callback) {
         final ChannelHandlerContext inboundCtx = (ChannelHandlerContext)
-                   msg.getProperty(Constants.PROTOCOL_NAME,Constants.CHNL_HNDLR_CTX);
+                   msg.getProperty(Constants.PROTOCOL_NAME, Constants.CHNL_HNDLR_CTX);
         final HttpRequest httpRequest = Util.createHttpRequest(msg);
         final Pipe pipe = msg.getPipe();
-        final SourceHandler srcHandler = (SourceHandler) msg.getProperty(Constants.PROTOCOL_NAME,Constants.SRC_HNDLR);
+        final SourceHandler srcHandler = (SourceHandler) msg.getProperty(Constants.PROTOCOL_NAME, Constants.SRC_HNDLR);
         InetSocketAddress address = new InetSocketAddress(msg.getHost(), msg.getPort());
         final HttpRoute route = new HttpRoute(msg.getHost(), msg.getPort());
 // TODO use src handler map (host port) and condition to use pool for throttling.
         if (srcHandler.getChannelFuture(route) == null) {
-            synchronized (srcHandler.getLock()){
-                if(srcHandler.getChannelFuture(route) == null){
-                    synchronized (lock){
+            synchronized (srcHandler.getLock()) {
+                if (srcHandler.getChannelFuture(route) == null) {
+                    synchronized (lock) {
                         channelCorrelator++;
                     }
-
-
                 }
-                RingBuffer ringBuffer = (RingBuffer)msg.getProperty(Constants.PROTOCOL_NAME, Constants.DISRUPTOR);
-                TargetInitializer targetInitializer = new TargetInitializer(ringBuffer,channelCorrelator);
-                Bootstrap bootstrap = getNewBootstrap(inboundCtx,targetInitializer);
+                RingBuffer ringBuffer = (RingBuffer) msg.getProperty(Constants.PROTOCOL_NAME, Constants.DISRUPTOR);
+                TargetInitializer targetInitializer = new TargetInitializer(ringBuffer, channelCorrelator,config.getQueueSize());
+                Bootstrap bootstrap = getNewBootstrap(inboundCtx, targetInitializer);
                 ChannelFuture future = bootstrap.connect(address);
                 final Channel outboundChannel = future.channel();
                 addCloseListener(outboundChannel, srcHandler, route);
                 TargetChanel targetChanel = new TargetChanel();
-                srcHandler.addChannelFuture(route,targetChanel);
+                srcHandler.addChannelFuture(route, targetChanel);
 // putCallback(outboundChannel, callback);
 // outboundChannel.attr(TargetHandler.callbackAttribute).set(callback);
                 future.addListener(new ChannelFutureListener() {
@@ -112,8 +113,12 @@ public class NettySender extends TransportSender {
             }
 
         } else {
-            while(!srcHandler.getChannelFuture(route).isChannelFutureReady()){
-
+            while (!srcHandler.getChannelFuture(route).isChannelFutureReady()) {
+//                try {
+//                    Thread.currentThread().wait(1);
+//                } catch (InterruptedException e) {
+//                    log.error("Interuppted Exception",e);
+//                }
             }
             TargetChanel targetChanel = srcHandler.getChannelFuture(route);
 // putCallback(srcHandler.getChannel(), callback);
@@ -150,8 +155,8 @@ public class NettySender extends TransportSender {
     }
 
 
-    private Bootstrap getNewBootstrap(ChannelHandlerContext ctx , TargetInitializer targetInitializer){
-      Bootstrap  bootstrap = new Bootstrap();
+    private Bootstrap getNewBootstrap(ChannelHandlerContext ctx, TargetInitializer targetInitializer) {
+        Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(ctx.channel().eventLoop())
                    .channel(ctx.channel().getClass())
                    .handler(targetInitializer);
@@ -170,11 +175,8 @@ public class NettySender extends TransportSender {
 
         private EventLoopGroup workerGroup;
 
-        private int concurrency;
 
-        private List<InetSocketAddress> endpointList;
-
-        private RingBuffer ringBuffer;
+        private int queueSize;
 
 
         public Config(String id) {
@@ -188,9 +190,6 @@ public class NettySender extends TransportSender {
             return id;
         }
 
-        public int getConcurrency() {
-            return concurrency;
-        }
 
         public EventLoopGroup getWorkerGroup() {
             return workerGroup;
@@ -205,33 +204,21 @@ public class NettySender extends TransportSender {
             return sslConfig;
         }
 
-        public Config setWorkerGroup(EventLoopGroup eventLoopGroup){
-            this.workerGroup =eventLoopGroup;
+        public Config setWorkerGroup(EventLoopGroup eventLoopGroup) {
+            this.workerGroup = eventLoopGroup;
             return this;
         }
 
-        public Config setConcurrency(int concurrency){
-            this.concurrency = concurrency;
+        public int getQueueSize(){
+            return queueSize;
+        }
+
+        public Config  setQueueSize(int queuesize){
+            this.queueSize = queuesize;
             return this;
         }
 
-        public Config setDisruptor(RingBuffer ringBuffer){
-            this.ringBuffer=ringBuffer;
-            return this;
-        }
 
-        public List<InetSocketAddress> getEndpointList() {
-            return endpointList;
-        }
-
-        public Config setEndpointList(List<InetSocketAddress> endpointList) {
-            this.endpointList = endpointList;
-            return  this;
-        }
-
-        public RingBuffer getRingBuffer(){
-            return  ringBuffer;
-        }
     }
 
 }

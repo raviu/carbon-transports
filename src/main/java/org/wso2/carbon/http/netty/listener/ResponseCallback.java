@@ -25,10 +25,12 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.Pipe;
-import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.common.HTTPContentChunk;
 import org.wso2.carbon.http.netty.common.Util;
 
+/**
+ * A Class responsible for handle response
+ */
 public class ResponseCallback implements CarbonCallback {
 
     private ChannelHandlerContext ctx;

@@ -20,10 +20,10 @@ package org.wso2.carbon.controller;
 import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.api.TransportSender;
 import org.wso2.carbon.disruptor.DisruptorFactory;
+import org.wso2.carbon.http.netty.common.Constants;
 import org.wso2.carbon.http.netty.listener.NettyListener;
 import org.wso2.carbon.http.netty.listener.SourceInitializer;
 import org.wso2.carbon.http.netty.sender.NettySender;
-
 
 
 import java.io.File;
@@ -40,12 +40,7 @@ public class POCController {
     public static void main(String[] args) {
 
 
-
-
         if (args.length == 2) {
-//            if (args[0].equals("jaxrs")) {
-//                engine = new POCJaxRSEngine(sender);
-//            }
 
             File propFile = new File(args[1]);
             try {
@@ -56,22 +51,35 @@ public class POCController {
                 e.printStackTrace();
                 System.exit(0);
             }
-            DisruptorFactory.createDisruptor(Integer.valueOf(props.getProperty("disruptorbufferSize", "1024")),
-                                             Integer.valueOf(props.getProperty("noOfDisurptors", "1")),Integer.valueOf(props.getProperty("noOfEventHandlersPerDisruptor", "2")));
-            NettyListener.Config nettyConfig = new NettyListener.Config("netty-gw").setPort(Integer.valueOf(props.getProperty("uport", "8585")));
+            String waitstrategy = props.getProperty("wait_strategy", Constants.PHASED_BACKOFF);
+            DisruptorFactory.WAITSTRATEGY waitstrategy1 = null;
+            if (waitstrategy.equals(Constants.BLOCKING_WAIT)) {
+                waitstrategy1 = DisruptorFactory.WAITSTRATEGY.BLOCKING_WAIT;
+            } else if (waitstrategy.equals(Constants.BUSY_SPIN)) {
+                waitstrategy1 = DisruptorFactory.WAITSTRATEGY.BUSY_SPIN;
+            } else if (waitstrategy.equals(Constants.TIME_BLOCKING)) {
+                waitstrategy1 = DisruptorFactory.WAITSTRATEGY.TIME_BLOCKING;
+            } else if (waitstrategy.equals(Constants.PHASED_BACKOFF)) {
+                waitstrategy1 = DisruptorFactory.WAITSTRATEGY.PHASED_BACKOFF;
+            } else if (waitstrategy.equals(Constants.LITE_BLOCKING)) {
+                waitstrategy1 = DisruptorFactory.WAITSTRATEGY.LITE_BLOCKING;
+            }
+            DisruptorFactory.createDisruptor(Integer.valueOf(props.getProperty("disruptor_buffer_Size", "1024")),
+                                             Integer.valueOf(props.getProperty("no_of_disurptors", "1")),
+                                             Integer.valueOf(props.getProperty("no_of_eventHandlers_per_disruptor", "1")),
+                                             waitstrategy1);
+            NettyListener.Config nettyConfig = new NettyListener.Config("netty-gw").setQueuSize(Integer.valueOf(props.getProperty("queue_size", "1024"))).
+                       setPort(Integer.valueOf(props.getProperty("uport", "8585")));
             NettyListener nettyListener = new NettyListener(nettyConfig);
             ArrayList<InetSocketAddress> inetSocketAddresses = new ArrayList<>();
-            inetSocketAddresses.add(new InetSocketAddress(props.getProperty("proxy_to_host", "localhost"), Integer.parseInt(props.getProperty("proxy_to_port", "8280"))));
-            NettySender.Config config = new NettySender.Config("netty-gw-sender").setConcurrency(Integer.valueOf(props.getProperty("concurrency", "2500"))).setWorkerGroup(nettyConfig.getWorkerGroup());
-            config.setEndpointList(inetSocketAddresses);
-//            try {
-//                //OutboundChannelFactory.OutboundChannelFactory(nettyConfig.getWorkerGroup(), Integer.valueOf(props.getProperty("concurrency", "2500")), inetSocketAddresses, config);
-//            } catch (IllegalAccessException e) {
-//                e.printStackTrace();
-//            }
-        TransportSender sender = new NettySender(config);
-        Engine engine = new POCMediationEngine(sender);
-            nettyListener.setDefaultInitializer(new SourceInitializer(engine, config));
+            inetSocketAddresses.add(new InetSocketAddress(props.getProperty("proxy_to_host", "localhost"),
+                                                          Integer.parseInt(props.getProperty("proxy_to_port", "8280"))));
+            NettySender.Config config = new NettySender.Config("netty-gw-sender").setQueueSize(Integer.parseInt(props.getProperty("queue_size")))
+                       .setWorkerGroup(nettyConfig.getWorkerGroup());
+            config.setQueueSize(nettyConfig.getQueueSize());
+            TransportSender sender = new NettySender(config);
+            Engine engine = new POCMediationEngine(sender);
+            nettyListener.setDefaultInitializer(new SourceInitializer(engine, nettyConfig.getQueueSize()));
 
             nettyListener.start();
 
@@ -84,7 +92,7 @@ public class POCController {
             }
         } else {
             showUsage();
-       }
+        }
     }
 
     private static void showUsage() {

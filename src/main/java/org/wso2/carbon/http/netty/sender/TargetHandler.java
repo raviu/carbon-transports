@@ -21,7 +21,6 @@ import com.lmax.disruptor.RingBuffer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.DefaultHttpContent;
-import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
@@ -43,11 +42,13 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     private RingBuffer ringBuffer;
     private CarbonMessage cMsg;
     private Pipe pipe;
+    private int queuesize;
     private int trgId;
 
-    public TargetHandler(RingBuffer ringBuffer , int trgId) {
+    public TargetHandler(RingBuffer ringBuffer, int trgId , int queuesize) {
         this.ringBuffer = ringBuffer;
-        this.trgId=trgId;
+        this.trgId = trgId;
+        this.queuesize = queuesize;
     }
 
     @Override
@@ -63,16 +64,16 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
             cMsg.setDirection(CarbonMessage.OUT);
-            cMsg.setProperty(Constants.PROTOCOL_NAME,Constants.RESPONSE_CALLBACK ,callback);
+            cMsg.setProperty(Constants.PROTOCOL_NAME, Constants.RESPONSE_CALLBACK, callback);
             HttpResponse httpResponse = (HttpResponse) msg;
             cMsg.setDirection(CarbonMessageImpl.OUT);
             cMsg.setProperty(Constants.PROTOCOL_NAME,
                              Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
             cMsg.setProperty(Constants.PROTOCOL_NAME,
                              Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
-            pipe = new Pipe("Target Pipe");
+            pipe = new Pipe("Target Pipe" , queuesize);
             cMsg.setPipe(pipe);
-            ringBuffer.publishEvent(new CarbonEventPublisher(cMsg,trgId));
+            ringBuffer.publishEvent(new CarbonEventPublisher(cMsg, trgId));
         } else {
             HTTPContentChunk chunk;
             if (cMsg != null) {
@@ -96,7 +97,6 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     public void setCallback(CarbonCallback callback) {
         this.callback = callback;
     }
-
 
 
 }

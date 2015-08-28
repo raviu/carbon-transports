@@ -35,6 +35,9 @@ import org.wso2.carbon.transports.CarbonTransport;
 
 import java.net.InetSocketAddress;
 
+/**
+ * A class that starts the netty server bootstrap in given port
+ */
 public class NettyListener extends CarbonTransport {
     private static Logger log = Logger.getLogger(NettyListener.class);
 
@@ -42,7 +45,7 @@ public class NettyListener extends CarbonTransport {
 
     private ServerBootstrap bootstrap;
     private static EventLoopGroup bossGroup;
-    private static  EventLoopGroup workerGroup;
+    private static EventLoopGroup workerGroup;
     private static ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     private ChannelInitializer defaultInitializer;
@@ -151,6 +154,7 @@ public class NettyListener extends CarbonTransport {
         private String id;
         private String host = "0.0.0.0";
         private int port = 8080;
+        private int queueSize;
         private int bossThreads = Runtime.getRuntime().availableProcessors();
         private int workerThreads = Runtime.getRuntime().availableProcessors() * 2;
         private int execThreads = 50;
@@ -172,11 +176,11 @@ public class NettyListener extends CarbonTransport {
             return bossThreads;
         }
 
-        public EventLoopGroup getBossGroup(){
+        public EventLoopGroup getBossGroup() {
             return bossGroup;
         }
 
-        public EventLoopGroup getWorkerGroup(){
+        public EventLoopGroup getWorkerGroup() {
             return workerGroup;
         }
 
@@ -228,6 +232,15 @@ public class NettyListener extends CarbonTransport {
 
         public SSLConfig getSslConfig() {
             return sslConfig;
+        }
+
+        public  Config setQueuSize(int queueSize){
+           this.queueSize = queueSize;
+            return this;
+        }
+
+        public int getQueueSize(){
+            return queueSize;
         }
     }
 

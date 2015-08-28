@@ -17,10 +17,8 @@
 package org.wso2.carbon.disruptor;
 
 import com.lmax.disruptor.*;
-import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
-import javafx.event.*;
 import org.wso2.carbon.disruptor.event.CarbonDisruptorEvent;
 import org.wso2.carbon.disruptor.exception.GenericExceptionHandler;
 import org.wso2.carbon.disruptor.handler.CarbonDisruptorEventHandler;
@@ -38,16 +36,41 @@ public class DisruptorFactory {
     private static List<RingBuffer> disruptorMap = new ArrayList<RingBuffer>();
     private static int noOfDisruptors;
     private static int index = 1;
-    private static int noOfEventHandlersPerDisruptor=1;
+    private static int noOfEventHandlersPerDisruptor = 1;
 
     public static Disruptor getDisruptor() {
         return disruptor;
     }
 
-    public static void createDisruptor(int bufferSize, int noDisruptors , int noOfEventHandlersPerDisruptor) {
+    public static void createDisruptor(int bufferSize, int noDisruptors, int noOfEventHandlersPerDisruptor,
+                                       WAITSTRATEGY waitstrategy) {
         noOfDisruptors = noDisruptors;
-        DisruptorFactory.noOfEventHandlersPerDisruptor=noOfEventHandlersPerDisruptor;
+        DisruptorFactory.noOfEventHandlersPerDisruptor = noOfEventHandlersPerDisruptor;
+        WaitStrategy waitStrategy;
 
+        switch (waitstrategy) {
+            case BLOCKING_WAIT:
+                waitStrategy = new BlockingWaitStrategy();
+                break;
+            case BUSY_SPIN:
+                waitStrategy = new BusySpinWaitStrategy();
+                break;
+            case LITE_BLOCKING:
+                waitStrategy = new LiteBlockingWaitStrategy();
+                break;
+            case PHASED_BACKOFF:
+                waitStrategy = PhasedBackoffWaitStrategy.withLiteLock(1, 4, TimeUnit.SECONDS);
+                break;
+            case SLEEPING_WAIT:
+                waitStrategy = new SleepingWaitStrategy();
+                break;
+            case TIME_BLOCKING:
+                waitStrategy = new TimeoutBlockingWaitStrategy(1, TimeUnit.SECONDS);
+                break;
+            default:
+                waitStrategy = PhasedBackoffWaitStrategy.withLiteLock(1, 4, TimeUnit.SECONDS);
+
+        }
         for (int i = 0; i < noDisruptors; i++) {
             ExecutorService executorService = Executors.newFixedThreadPool(noOfEventHandlersPerDisruptor);
             disruptor = new Disruptor<CarbonDisruptorEvent>(
@@ -55,15 +78,15 @@ public class DisruptorFactory {
                        bufferSize,
                        executorService,
                        ProducerType.MULTI,
-                       new BusySpinWaitStrategy());
+                       waitStrategy);
             ExceptionHandler exh = new GenericExceptionHandler();
             EventHandler[] eventHandlers = new EventHandler[noOfEventHandlersPerDisruptor];
-            for(int j=0; j<noOfEventHandlersPerDisruptor;j++) {
+            for (int j = 0; j < noOfEventHandlersPerDisruptor; j++) {
                 EventHandler eventHandler = new CarbonDisruptorEventHandler(j);
-                eventHandlers[j]=eventHandler;
+                eventHandlers[j] = eventHandler;
             }
             disruptor.handleEventsWith(eventHandlers);
-            for(EventHandler eventHandler:eventHandlers){
+            for (EventHandler eventHandler : eventHandlers) {
                 disruptor.handleExceptionsFor(eventHandler).with(exh);
             }
             disruptorMap.add(disruptor.start());
@@ -78,7 +101,11 @@ public class DisruptorFactory {
         return disruptorMap.get(ind);
     }
 
-    public static int noOfEventHandlersPerDisruptor(){
+    public static int noOfEventHandlersPerDisruptor() {
         return noOfEventHandlersPerDisruptor;
+    }
+
+    public enum WAITSTRATEGY {
+        BLOCKING_WAIT, BUSY_SPIN, LITE_BLOCKING, PHASED_BACKOFF, SLEEPING_WAIT, TIME_BLOCKING
     }
 }

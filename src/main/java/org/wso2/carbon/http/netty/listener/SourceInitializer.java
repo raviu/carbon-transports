@@ -25,21 +25,22 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.Engine;
-import org.wso2.carbon.http.netty.sender.NettySender;
 
-
+/**
+ * A class that responsible for create server side channels.
+ */
 public class SourceInitializer extends ChannelInitializer<SocketChannel> {
 
     private static final Logger log = Logger.getLogger(SourceInitializer.class);
 
     private Engine engine;
-    private NettySender.Config config;
     private int noOfChannels;
+    private int queueSize;
     private Object lock = new Object();
 
-    public SourceInitializer(Engine engine , NettySender.Config config) {
+    public SourceInitializer(Engine engine , int queueSize) {
         this.engine = engine;
-        this.config=config;
+        this.queueSize = queueSize;
     }
 
     @Override
@@ -58,7 +59,7 @@ public class SourceInitializer extends ChannelInitializer<SocketChannel> {
 //        p.addLast(new DefaultEventExecutorGroup(10), "handler", new SourceHandler(engine));
         synchronized (lock){
             noOfChannels++;
-            p.addLast("handler", new SourceHandler(engine,noOfChannels));
+            p.addLast("handler", new SourceHandler(engine,noOfChannels ,queueSize));
         }
 
 

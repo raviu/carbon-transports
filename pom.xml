@@ -104,15 +104,14 @@
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.transport.http.netty.internal,
-                            org.wso2.carbon.http.netty.*
+                            org.wso2.carbon.transport.http.netty.*
                         </Export-Package>
                         <Import-Package>
                             org.osgi.framework.*;version="${osgi.framework.import.version.range}",
                             org.osgi.util.tracker; version="${osgi.service.tracker.import.version.range}",
                             io.netty.*,
                             org.wso2.carbon.transports.*,
-                            org.apache.log4j.*,
-                            org.apache.commons.logging.*,
+                            org.slf4j.*,
                             org.xml.sax.*,
                             javax.xml.parsers.*,
                             javax.net.ssl.*

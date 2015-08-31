@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.wso2.carbon</groupId>
@@ -43,9 +43,9 @@
             <version>${equinox.osgi.version}</version>
         </dependency>
         <!--<dependency>-->
-            <!--<groupId>org.wso2.carbon</groupId>-->
-            <!--<artifactId>org.wso2.carbon.core</artifactId>-->
-            <!--<version>${org.wso2.carbon.core.version}</version>-->
+        <!--<groupId>org.wso2.carbon</groupId>-->
+        <!--<artifactId>org.wso2.carbon.core</artifactId>-->
+        <!--<version>${org.wso2.carbon.core.version}</version>-->
         <!--</dependency>-->
         <dependency>
             <groupId>org.eclipse.osgi</groupId>
@@ -78,9 +78,9 @@
             <version>${netty.version}</version>
         </dependency>
         <dependency>
-        <groupId>org.wso2.carbon</groupId>
-        <artifactId>org.wso2.carbon.core</artifactId>
-        <version>${org.wso2.carbon.core.version}</version>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.core</artifactId>
+            <version>${org.wso2.carbon.core.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.ws.commons.axiom</groupId>
@@ -156,7 +156,8 @@
                     <instructions>
                         <Bundle-Vendor>WSO2 Inc</Bundle-Vendor>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                        <Bundle-Activator>org.wso2.carbon.transport.http.netty.internal.NettyTransportActivator</Bundle-Activator>
+                        <Bundle-Activator>org.wso2.carbon.transport.http.netty.internal.NettyTransportActivator
+                        </Bundle-Activator>
                         <Private-Package>
                             org.wso2.carbon.transport.http.netty.internal
                         </Private-Package>

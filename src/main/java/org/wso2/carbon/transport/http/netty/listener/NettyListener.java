@@ -29,9 +29,9 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.transport.http.netty.Constants;
 import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
 import org.wso2.carbon.transports.CarbonTransport;
-import org.wso2.carbon.transport.http.netty.Constants;
 
 import java.net.InetSocketAddress;
 
@@ -40,14 +40,11 @@ import java.net.InetSocketAddress;
  */
 public class NettyListener extends CarbonTransport {
     private static Logger log = Logger.getLogger(NettyListener.class);
-
-    private String SERVER_STATE = Constants.STATE_STOPPED;
-
-    private ServerBootstrap bootstrap;
     private static EventLoopGroup bossGroup;
     private static EventLoopGroup workerGroup;
     private static ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-
+    private String SERVER_STATE = Constants.STATE_STOPPED;
+    private ServerBootstrap bootstrap;
     private ChannelInitializer defaultInitializer;
     private Config nettyConfig;
 
@@ -57,6 +54,10 @@ public class NettyListener extends CarbonTransport {
         this.nettyConfig = nettyConfig;
         bossGroup = new NioEventLoopGroup(nettyConfig.getBossThreads());
         workerGroup = new NioEventLoopGroup(nettyConfig.getWorkerThreads());
+    }
+
+    public static ChannelGroup getListenerChannelGroup() {
+        return allChannels;
     }
 
     public void setDefaultInitializer(ChannelInitializer defaultInitializer) {
@@ -71,7 +72,7 @@ public class NettyListener extends CarbonTransport {
         bootstrap = new ServerBootstrap();
         bootstrap.option(ChannelOption.SO_BACKLOG, 100);
         bootstrap.group(bossGroup, workerGroup)
-                   .channel(NioServerSocketChannel.class);
+                .channel(NioServerSocketChannel.class);
         addChannelInitializer();
         bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
@@ -145,10 +146,6 @@ public class NettyListener extends CarbonTransport {
         });
     }
 
-    public static ChannelGroup getListenerChannelGroup() {
-        return allChannels;
-    }
-
     public static class Config {
 
         private String id;
@@ -176,17 +173,17 @@ public class NettyListener extends CarbonTransport {
             return bossThreads;
         }
 
+        public Config setBossThreads(int bossThreads) {
+            this.bossThreads = bossThreads;
+            return this;
+        }
+
         public EventLoopGroup getBossGroup() {
             return bossGroup;
         }
 
         public EventLoopGroup getWorkerGroup() {
             return workerGroup;
-        }
-
-        public Config setBossThreads(int bossThreads) {
-            this.bossThreads = bossThreads;
-            return this;
         }
 
         public int getExecThreads() {
@@ -234,12 +231,12 @@ public class NettyListener extends CarbonTransport {
             return sslConfig;
         }
 
-        public  Config setQueuSize(int queueSize){
-           this.queueSize = queueSize;
+        public Config setQueuSize(int queueSize) {
+            this.queueSize = queueSize;
             return this;
         }
 
-        public int getQueueSize(){
+        public int getQueueSize() {
             return queueSize;
         }
     }

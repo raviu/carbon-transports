@@ -29,7 +29,7 @@ import org.wso2.carbon.transport.http.netty.listener.ssl.SSLHandlerFactory;
  * Handles initialization of the Netty Channel pipeline
  */
 public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
-  //  private static final Log log = LogFactory.getLog(NettyServerInitializer.class);
+    //  private static final Log log = LogFactory.getLog(NettyServerInitializer.class);
     private String transportID;
     private SSLConfig sslConfig;
 

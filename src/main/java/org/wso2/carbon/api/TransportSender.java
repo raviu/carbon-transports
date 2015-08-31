@@ -37,9 +37,13 @@ public abstract class TransportSender {
         this.engine = engine;
     }
 
-    public String getProtocol() { return protocol; }
+    public String getProtocol() {
+        return protocol;
+    }
 
-    public void setProtocol(String protocol) { this.protocol = protocol; }
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
 
     public abstract boolean init();
 

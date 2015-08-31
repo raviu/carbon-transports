@@ -30,13 +30,13 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 /**
  * OSGi BundleActivator of the Netty transport component
@@ -46,13 +46,14 @@ public class NettyTransportActivator implements BundleActivator {
 
     @Override
     public void start(BundleContext bundleContext) throws Exception {
-        for(NettyListener listener : createNettyListners()) {
+        for (NettyListener listener : createNettyListners()) {
             bundleContext.registerService(CarbonTransport.class, listener, null);
         }
     }
 
     /**
      * Parse the  netty-transports.xml config file & create the Netty transport instances
+     *
      * @return Netty transport instances
      */
     private Set<NettyListener> createNettyListners() {
@@ -139,6 +140,7 @@ public class NettyTransportActivator implements BundleActivator {
 
     /**
      * Parse the  netty-transports.xml config file & create the Netty transport instances
+     *
      * @return Netty transport instances
      */
     private Set<NettySender> createNettySenders() {
@@ -172,7 +174,7 @@ public class NettyTransportActivator implements BundleActivator {
                             throw new IllegalArgumentException("KeyStore File " + keystoreFile + " not found");
                         }
                         SSLConfig sslConfig =
-                                   new SSLConfig(keyStore, keystorePass).setCertPass(certPass);
+                                new SSLConfig(keyStore, keystorePass).setCertPass(certPass);
                         if (trustStoreFile != null) {
                             File trustStore = new File(trustStoreFile);
                             if (!trustStore.exists()) {
@@ -191,7 +193,7 @@ public class NettyTransportActivator implements BundleActivator {
         };
 
         String nettyTransportsXML = "repository" + File.separator + "conf" + File.separator +
-                                    "transports" + File.separator + "netty-transports.xml";
+                "transports" + File.separator + "netty-transports.xml";
         try {
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser saxParser = factory.newSAXParser();

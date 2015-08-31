@@ -50,12 +50,12 @@ public class NettyTransportDataHolder {
         return channelInitializers.get(key);
     }
 
-    public void setEngine(Engine engine) {
-        this.engine = engine;
+    public Engine getEngine() {
+        return engine;
     }
 
-    public Engine getEngine(){
-        return engine;
+    public void setEngine(Engine engine) {
+        this.engine = engine;
     }
 
     public void unsetEngine() {

@@ -19,16 +19,15 @@
             keystorePass="secret"
             certPass="secret"/>
 
-        <listener
-                id="gw-http"
-                host="0.0.0.0"
-                port="9090"
-                bossThreadPoolSize="4"
-                workerThreadPoolSize="8"
-                execHandlerThreadPoolSize="60"/>
+    <listener
+            id="gw-http"
+            host="0.0.0.0"
+            port="9090"
+            bossThreadPoolSize="4"
+            workerThreadPoolSize="8"
+            execHandlerThreadPoolSize="60"/>
 
-        <sender
-                id="gw-http"
-                queueSize="32244"
-                />
+    <sender
+            id="gw-http"
+            queueSize="32244"/>
 </transports>

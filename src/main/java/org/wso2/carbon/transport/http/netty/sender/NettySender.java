@@ -16,8 +16,7 @@
 
 package org.wso2.carbon.transport.http.netty.sender;
 
-
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.TransportSender;
@@ -26,7 +25,7 @@ import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
 
 
 public class NettySender extends TransportSender {
-    private static Logger log = Logger.getLogger(NettySender.class);
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(NettySender.class);
 
     private Config config;
 

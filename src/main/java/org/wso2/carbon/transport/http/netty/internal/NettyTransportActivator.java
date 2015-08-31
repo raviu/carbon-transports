@@ -18,10 +18,10 @@
  */
 package org.wso2.carbon.transport.http.netty.internal;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.http.netty.listener.NettyListener;
 import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
 import org.wso2.carbon.transport.http.netty.sender.NettySender;
@@ -42,7 +42,7 @@ import javax.xml.parsers.SAXParserFactory;
  * OSGi BundleActivator of the Netty transport component
  */
 public class NettyTransportActivator implements BundleActivator {
-    private static final Log log = LogFactory.getLog(NettyTransportActivator.class);
+    private static final Logger log = LoggerFactory.getLogger(NettyTransportActivator.class);
 
     @Override
     public void start(BundleContext bundleContext) throws Exception {

@@ -28,7 +28,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.http.netty.Constants;
 import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
 import org.wso2.carbon.transports.CarbonTransport;
@@ -39,7 +40,8 @@ import java.net.InetSocketAddress;
  * A class that starts the netty server bootstrap in given port
  */
 public class NettyListener extends CarbonTransport {
-    private static Logger log = Logger.getLogger(NettyListener.class);
+    private static final Logger log = LoggerFactory.getLogger(NettyListener.class);
+
     private static EventLoopGroup bossGroup;
     private static EventLoopGroup workerGroup;
     private static ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);

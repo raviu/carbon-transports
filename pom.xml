@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.wso2.carbon</groupId>
-    <artifactId>carbon-netty-http-transport</artifactId>
-    <version>1.0.0</version>
+    <artifactId>org.wso2.carbon.transport.http.netty</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
 
     <packaging>bundle</packaging>
     <name>Carbon Netty HTTP Transport</name>
@@ -42,11 +42,6 @@
             <artifactId>org.eclipse.osgi</artifactId>
             <version>${equinox.osgi.version}</version>
         </dependency>
-        <!--<dependency>-->
-        <!--<groupId>org.wso2.carbon</groupId>-->
-        <!--<artifactId>org.wso2.carbon.core</artifactId>-->
-        <!--<version>${org.wso2.carbon.core.version}</version>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>org.eclipse.osgi</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
@@ -61,11 +56,6 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-transport</artifactId>
             <version>${netty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.com.lmax</groupId>
-            <artifactId>disruptor</artifactId>
-            <version>${disruptor.version}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
@@ -83,59 +73,10 @@
             <version>${org.wso2.carbon.core.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.ws.commons.axiom</groupId>
-            <artifactId>axiom-api</artifactId>
-            <version>1.2.14</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.ws.commons.axiom</groupId>
-            <artifactId>axiom-impl</artifactId>
-            <version>1.2.14</version>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>3.8.1</version>
-            <scope>test</scope>
-        </dependency>
-        <!--added below dependencies in camel-->
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-core</artifactId>
-            <version>2.15.2</version>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.5</version>
+            <version>${slf4j.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-core</artifactId>
-            <version>2.15.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.5</version>
-        </dependency>
-
-
     </dependencies>
 
     <build>
@@ -204,7 +145,7 @@
         <org.wso2.carbon.core.version>5.0.0-m4</org.wso2.carbon.core.version>
         <osgi.framework.import.version.range>[1.7.0, 1.8.0)</osgi.framework.import.version.range>
         <osgi.service.tracker.import.version.range>[1.5.1, 1.6.0)</osgi.service.tracker.import.version.range>
-        <disruptor.version>3.3.2.wso2v2</disruptor.version>
+        <slf4j.version>1.7.5</slf4j.version>
     </properties>
 
 </project>

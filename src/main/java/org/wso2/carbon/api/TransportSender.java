@@ -17,10 +17,11 @@
  */
 package org.wso2.carbon.api;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class TransportSender {
-    private static Logger log = Logger.getLogger(TransportSender.class);
+    private static final Logger log = LoggerFactory.getLogger(TransportSender.class);
 
     private String protocol;
     private Engine engine;

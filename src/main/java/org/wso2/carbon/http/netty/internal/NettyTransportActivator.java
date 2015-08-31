@@ -24,6 +24,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.http.netty.listener.NettyListener;
 import org.wso2.carbon.http.netty.listener.ssl.SSLConfig;
+import org.wso2.carbon.http.netty.sender.NettySender;
 import org.wso2.carbon.transports.CarbonTransport;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -45,7 +46,7 @@ public class NettyTransportActivator implements BundleActivator {
 
     @Override
     public void start(BundleContext bundleContext) throws Exception {
-        for(NettyListener listener : createNettyServices()) {
+        for(NettyListener listener : createNettyListners()) {
             bundleContext.registerService(CarbonTransport.class, listener, null);
         }
     }
@@ -54,7 +55,7 @@ public class NettyTransportActivator implements BundleActivator {
      * Parse the  netty-transports.xml config file & create the Netty transport instances
      * @return Netty transport instances
      */
-    private Set<NettyListener> createNettyServices() {
+    private Set<NettyListener> createNettyListners() {
         final Set<NettyListener> listeners = new HashSet<>();
         DefaultHandler handler = new DefaultHandler() {
 
@@ -134,6 +135,73 @@ public class NettyTransportActivator implements BundleActivator {
         }
         return listeners;
     }
+
+
+    /**
+     * Parse the  netty-transports.xml config file & create the Netty transport instances
+     * @return Netty transport instances
+     */
+    private Set<NettySender> createNettySenders() {
+        final Set<NettySender> senders = new HashSet<>();
+        DefaultHandler handler = new DefaultHandler() {
+
+            @Override
+            public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+                super.startElement(uri, localName, qName, attributes);
+                if (qName.equals("sender")) {
+                    String id = attributes.getValue("id");
+                    String queueSize = attributes.getValue("queueSize");
+                    String scheme = attributes.getValue("scheme");
+                    String keystoreFile = attributes.getValue("keystoreFile");
+                    String keystorePass = attributes.getValue("keystorePass");
+                    String certPass = attributes.getValue("certPass");
+                    String trustStoreFile = attributes.getValue("trustStoreFile");
+                    String trustStorePass = attributes.getValue("trustStorePass");
+
+                    NettySender.Config nettyConfig = new NettySender.Config(id);
+
+                    if (scheme != null && scheme.equalsIgnoreCase("https")) {
+                        if (certPass == null) {
+                            certPass = keystorePass;
+                        }
+                        if (keystoreFile == null || keystorePass == null) {
+                            throw new IllegalArgumentException("keyStoreFile or keyStorePass not defined for HTTPS scheme");
+                        }
+                        File keyStore = new File(keystoreFile);
+                        if (!keyStore.exists()) {
+                            throw new IllegalArgumentException("KeyStore File " + keystoreFile + " not found");
+                        }
+                        SSLConfig sslConfig =
+                                   new SSLConfig(keyStore, keystorePass).setCertPass(certPass);
+                        if (trustStoreFile != null) {
+                            File trustStore = new File(trustStoreFile);
+                            if (!trustStore.exists()) {
+                                throw new IllegalArgumentException("trustStore File " + trustStoreFile + " not found");
+                            }
+                            if (trustStorePass == null) {
+                                throw new IllegalArgumentException("trustStorePass is not defined for HTTPS scheme");
+                            }
+                            sslConfig.setTrustStore(trustStore).setTrustStorePass(trustStorePass);
+                        }
+                        nettyConfig.enableSsl(sslConfig);
+                    }
+                    senders.add(new NettySender(nettyConfig));
+                }
+            }
+        };
+
+        String nettyTransportsXML = "repository" + File.separator + "conf" + File.separator +
+                                    "transports" + File.separator + "netty-transports.xml";
+        try {
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+            saxParser.parse(nettyTransportsXML, handler);
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            log.error("Cannot parse " + nettyTransportsXML, e);
+        }
+        return senders;
+    }
+
 
     @Override
     public void stop(BundleContext bundleContext) throws Exception {

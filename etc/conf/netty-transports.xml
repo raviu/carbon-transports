@@ -26,4 +26,9 @@
                 bossThreadPoolSize="4"
                 workerThreadPoolSize="8"
                 execHandlerThreadPoolSize="60"/>
+
+        <sender
+                id="gw-http"
+                queueSize="32244"
+                />
 </transports>

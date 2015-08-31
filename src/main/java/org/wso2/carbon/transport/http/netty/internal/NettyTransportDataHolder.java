@@ -16,10 +16,10 @@
  *  under the License.
  *
  */
-package org.wso2.carbon.http.netty.internal;
+package org.wso2.carbon.transport.http.netty.internal;
 
 import org.wso2.carbon.api.Engine;
-import org.wso2.carbon.http.netty.listener.CarbonNettyServerInitializer;
+import org.wso2.carbon.transport.http.netty.listener.CarbonNettyServerInitializer;
 
 import java.util.HashMap;
 import java.util.Map;

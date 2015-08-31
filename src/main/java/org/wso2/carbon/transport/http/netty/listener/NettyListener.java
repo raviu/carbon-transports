@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.http.netty.listener;
+package org.wso2.carbon.transport.http.netty.listener;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -29,9 +29,9 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.http.netty.common.Constants;
-import org.wso2.carbon.http.netty.listener.ssl.SSLConfig;
+import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
 import org.wso2.carbon.transports.CarbonTransport;
+import org.wso2.carbon.transport.http.netty.Constants;
 
 import java.net.InetSocketAddress;
 

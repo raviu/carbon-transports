@@ -16,7 +16,7 @@
  *  under the License.
  *
  */
-package org.wso2.carbon.http.netty.listener;
+package org.wso2.carbon.transport.http.netty.listener;
 
 import io.netty.channel.socket.SocketChannel;
 

@@ -17,13 +17,13 @@
  *  * under the License.
  *
  */
-package org.wso2.carbon.http.netty.listener;
+package org.wso2.carbon.transport.http.netty.listener;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.ssl.SslHandler;
-import org.wso2.carbon.http.netty.listener.ssl.SSLConfig;
-import org.wso2.carbon.http.netty.listener.ssl.SSLHandlerFactory;
+import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
+import org.wso2.carbon.transport.http.netty.listener.ssl.SSLHandlerFactory;
 
 /**
  * Handles initialization of the Netty Channel pipeline

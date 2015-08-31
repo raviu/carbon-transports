@@ -16,7 +16,7 @@
  *  under the License.
  *
  */
-package org.wso2.carbon.http.netty.listener.ssl;
+package org.wso2.carbon.transport.http.netty.listener.ssl;
 
 import io.netty.handler.ssl.SslHandler;
 

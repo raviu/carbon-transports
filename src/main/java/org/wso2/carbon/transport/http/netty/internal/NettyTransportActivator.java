@@ -16,15 +16,15 @@
  *  under the License.
  *
  */
-package org.wso2.carbon.http.netty.internal;
+package org.wso2.carbon.transport.http.netty.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.http.netty.listener.NettyListener;
-import org.wso2.carbon.http.netty.listener.ssl.SSLConfig;
-import org.wso2.carbon.http.netty.sender.NettySender;
+import org.wso2.carbon.transport.http.netty.listener.NettyListener;
+import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
+import org.wso2.carbon.transport.http.netty.sender.NettySender;
 import org.wso2.carbon.transports.CarbonTransport;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;

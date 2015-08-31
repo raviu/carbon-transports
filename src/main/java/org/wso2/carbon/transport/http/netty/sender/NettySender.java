@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.http.netty.sender;
+package org.wso2.carbon.transport.http.netty.sender;
 
 
 import org.apache.log4j.Logger;
 import org.wso2.carbon.api.CarbonCallback;
 import org.wso2.carbon.api.CarbonMessage;
 import org.wso2.carbon.api.TransportSender;
-import org.wso2.carbon.http.netty.common.Constants;
-import org.wso2.carbon.http.netty.listener.ssl.SSLConfig;
+import org.wso2.carbon.transport.http.netty.Constants;
+import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
 
 
 public class NettySender extends TransportSender {

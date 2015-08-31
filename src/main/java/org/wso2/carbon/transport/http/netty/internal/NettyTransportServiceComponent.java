@@ -16,7 +16,7 @@
  *  under the License.
  *
  */
-package org.wso2.carbon.http.netty.internal;
+package org.wso2.carbon.transport.http.netty.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,13 +24,12 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.api.Engine;
-import org.wso2.carbon.http.netty.listener.CarbonNettyServerInitializer;
+import org.wso2.carbon.transport.http.netty.listener.CarbonNettyServerInitializer;
 
 import java.util.Map;
 
 @Component(
-           name = "org.wso2.carbon.http.netty.internal.NettyTransportServiceComponent",
+           name = "org.wso2.carbon.transport.http.netty.internal.NettyTransportServiceComponent",
            immediate = true
 )
 @SuppressWarnings("unused")

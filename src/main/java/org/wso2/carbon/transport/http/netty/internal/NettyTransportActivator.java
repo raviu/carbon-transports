@@ -61,7 +61,8 @@ public class NettyTransportActivator implements BundleActivator {
         DefaultHandler handler = new DefaultHandler() {
 
             @Override
-            public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+            public void startElement(String uri, String localName,
+                                     String qName, Attributes attributes) throws SAXException {
                 super.startElement(uri, localName, qName, attributes);
                 if (qName.equals("listener")) {
                     String id = attributes.getValue("id");
@@ -100,7 +101,8 @@ public class NettyTransportActivator implements BundleActivator {
                             certPass = keystorePass;
                         }
                         if (keystoreFile == null || keystorePass == null) {
-                            throw new IllegalArgumentException("keyStoreFile or keyStorePass not defined for HTTPS scheme");
+                            throw new IllegalArgumentException("keyStoreFile or keyStorePass not defined for " +
+                                    "HTTPS scheme");
                         }
                         File keyStore = new File(keystoreFile);
                         if (!keyStore.exists()) {
@@ -148,7 +150,8 @@ public class NettyTransportActivator implements BundleActivator {
         DefaultHandler handler = new DefaultHandler() {
 
             @Override
-            public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+            public void startElement(String uri, String localName, String qName,
+                                     Attributes attributes) throws SAXException {
                 super.startElement(uri, localName, qName, attributes);
                 if (qName.equals("sender")) {
                     String id = attributes.getValue("id");
@@ -167,7 +170,8 @@ public class NettyTransportActivator implements BundleActivator {
                             certPass = keystorePass;
                         }
                         if (keystoreFile == null || keystorePass == null) {
-                            throw new IllegalArgumentException("keyStoreFile or keyStorePass not defined for HTTPS scheme");
+                            throw new IllegalArgumentException("keyStoreFile or keyStorePass not defined for " +
+                                    "HTTPS scheme");
                         }
                         File keyStore = new File(keystoreFile);
                         if (!keyStore.exists()) {

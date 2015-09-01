@@ -28,6 +28,10 @@ import org.wso2.carbon.transport.http.netty.listener.CarbonNettyServerInitialize
 
 import java.util.Map;
 
+/**
+ * Declarative service component for the Netty transport. This handles registration & unregistration of relevant
+ * OSGi services.
+ */
 @Component(
         name = "org.wso2.carbon.transport.http.netty.internal.NettyTransportServiceComponent",
         immediate = true
@@ -54,7 +58,8 @@ public class NettyTransportServiceComponent {
             if (channelId != null) {
                 dataHolder.addNettyChannelInitializer(channelId, initializer);
             } else {
-                throw new IllegalArgumentException(CHANNEL_ID_KEY + " not specified for ChannelInitializer " + initializer);
+                throw new IllegalArgumentException(CHANNEL_ID_KEY + " not specified for ChannelInitializer " +
+                        initializer);
             }
         } catch (Throwable e) {
             log.error("Cannot add CarbonNettyServerInitializer", e);

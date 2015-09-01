@@ -29,8 +29,8 @@ import org.wso2.carbon.transport.http.netty.listener.CarbonNettyServerInitialize
 import java.util.Map;
 
 @Component(
-        name = "org.wso2.carbon.transport.http.netty.internal.NettyTransportServiceComponent",
-        immediate = true
+           name = "org.wso2.carbon.transport.http.netty.internal.NettyTransportServiceComponent",
+           immediate = true
 )
 @SuppressWarnings("unused")
 public class NettyTransportServiceComponent {
@@ -42,11 +42,11 @@ public class NettyTransportServiceComponent {
     private NettyTransportDataHolder dataHolder = NettyTransportDataHolder.getInstance();
 
     @Reference(
-            name = "netty-channel.initializer",
-            service = CarbonNettyServerInitializer.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "removeNettyChannelInitializer"
+               name = "netty-channel.initializer",
+               service = CarbonNettyServerInitializer.class,
+               cardinality = ReferenceCardinality.MULTIPLE,
+               policy = ReferencePolicy.DYNAMIC,
+               unbind = "removeNettyChannelInitializer"
     )
     protected void addNettyChannelInitializer(CarbonNettyServerInitializer initializer, Map<String, ?> properties) {
         try {
@@ -67,23 +67,5 @@ public class NettyTransportServiceComponent {
         dataHolder.removeNettyChannelInitializer(channelId);
     }
 
-//    @Reference(
-//               name = "engine.service",
-//               service = Engine.class,
-//               cardinality = ReferenceCardinality.OPTIONAL,
-//               policy = ReferencePolicy.DYNAMIC,
-//               unbind = "removeEngine"
-//    )
-//    protected void setEngine(Engine engine) {
-//        try {
-//            dataHolder.setEngine(engine);
-//        } catch (Throwable e) {
-//            log.error("Cannot add Engine Implementation", e);
-//        }
-//    }
-//
-//    @SuppressWarnings("unused")
-//    protected void removeEngine() {
-//        dataHolder.unsetEngine();
-//    }
+
 }

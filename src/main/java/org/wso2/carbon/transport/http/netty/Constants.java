@@ -18,7 +18,6 @@
 package org.wso2.carbon.transport.http.netty;
 
 public final class Constants {
-    public static final String PROTOCOL_NAME = "http";
 
     public static final String STATE_TRANSITION = "STATE_TRANSITION";
 

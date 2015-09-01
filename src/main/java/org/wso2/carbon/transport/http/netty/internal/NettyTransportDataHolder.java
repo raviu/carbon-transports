@@ -18,7 +18,6 @@
  */
 package org.wso2.carbon.transport.http.netty.internal;
 
-import org.wso2.carbon.api.Engine;
 import org.wso2.carbon.transport.http.netty.listener.CarbonNettyServerInitializer;
 
 import java.util.HashMap;
@@ -32,7 +31,6 @@ public class NettyTransportDataHolder {
     private static NettyTransportDataHolder instance = new NettyTransportDataHolder();
     private Map<String, CarbonNettyServerInitializer> channelInitializers = new HashMap<>();
 
-    private Engine engine;
 
     private NettyTransportDataHolder() {
 
@@ -46,23 +44,14 @@ public class NettyTransportDataHolder {
         this.channelInitializers.put(key, initializer);
     }
 
+
     public CarbonNettyServerInitializer getChannelInitializer(String key) {
         return channelInitializers.get(key);
     }
 
-    public Engine getEngine() {
-        return engine;
-    }
-
-    public void setEngine(Engine engine) {
-        this.engine = engine;
-    }
-
-    public void unsetEngine() {
-        this.engine = null;
-    }
 
     public void removeNettyChannelInitializer(String key) {
         channelInitializers.remove(key);
     }
+
 }

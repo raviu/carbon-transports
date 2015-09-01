@@ -47,7 +47,7 @@ public class NettyTransportActivator implements BundleActivator {
 
     @Override
     public void start(BundleContext bundleContext) throws Exception {
-        for (NettyListener listener : createNettyListners()) {
+        for (NettyListener listener : createNettyListeners()) {
             bundleContext.registerService(CarbonTransport.class, listener, null);
         }
     }
@@ -57,7 +57,7 @@ public class NettyTransportActivator implements BundleActivator {
      *
      * @return Netty transport instances
      */
-    private Set<NettyListener> createNettyListners() {
+    private Set<NettyListener> createNettyListeners() {
         final Set<NettyListener> listeners = new HashSet<>();
         DefaultHandler handler = new NettyTransportDataHandler(listeners);
         try {

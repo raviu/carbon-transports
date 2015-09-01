@@ -17,6 +17,9 @@
  */
 package org.wso2.carbon.transport.http.netty;
 
+/**
+ * Constants used by the Netty transport
+ */
 public final class Constants {
 
     public static final String STATE_TRANSITION = "STATE_TRANSITION";
@@ -25,4 +28,6 @@ public final class Constants {
 
     public static final String STATE_STOPPED = "STATE_STOPPED";
 
+    private Constants() {
+    }
 }

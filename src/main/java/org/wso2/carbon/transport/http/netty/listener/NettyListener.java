@@ -18,16 +18,12 @@
 package org.wso2.carbon.transport.http.netty.listener;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import io.netty.util.concurrent.GlobalEventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.http.netty.Constants;
@@ -44,10 +40,9 @@ public class NettyListener extends CarbonTransport {
 
     private static EventLoopGroup bossGroup;
     private static EventLoopGroup workerGroup;
-    private String SERVER_STATE = Constants.STATE_STOPPED;
+    private String serverState = Constants.STATE_STOPPED;
     private ServerBootstrap bootstrap;
     private Config nettyConfig;
-
 
     public NettyListener(Config nettyConfig) {
         super(nettyConfig.getId());
@@ -75,9 +70,8 @@ public class NettyListener extends CarbonTransport {
         bootstrap.childOption(ChannelOption.SO_RCVBUF, 1048576);
         bootstrap.childOption(ChannelOption.SO_SNDBUF, 1048576);
         try {
-
             bootstrap.bind(new InetSocketAddress(nettyConfig.getHost(), nettyConfig.getPort())).sync();
-            SERVER_STATE = Constants.STATE_STARTED;
+            serverState = Constants.STATE_STARTED;
             log.info("Netty Listener starting on port " + nettyConfig.getPort());
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
@@ -85,28 +79,28 @@ public class NettyListener extends CarbonTransport {
     }
 
     private void addChannelInitializer() {
-            NettyServerInitializer handler = new NettyServerInitializer(id);
-            handler.setSslConfig(nettyConfig.getSslConfig());
-            bootstrap.childHandler(handler);
+        NettyServerInitializer handler = new NettyServerInitializer(id);
+        handler.setSslConfig(nettyConfig.getSslConfig());
+        bootstrap.childHandler(handler);
     }
 
     @Override
     public void stop() {
-        SERVER_STATE = Constants.STATE_TRANSITION;
+        serverState = Constants.STATE_TRANSITION;
         log.info("Stopping Netty transport " + id + " on port " + nettyConfig.getPort());
         shutdownEventLoops();
     }
 
     @Override
     public void beginMaintenance() {
-        SERVER_STATE = Constants.STATE_TRANSITION;
+        serverState = Constants.STATE_TRANSITION;
         log.info("Putting Netty transport " + id + " on port " + nettyConfig.getPort() + " into maintenance mode");
         shutdownEventLoops();
     }
 
     @Override
     public void endMaintenance() {
-        SERVER_STATE = Constants.STATE_TRANSITION;
+        serverState = Constants.STATE_TRANSITION;
         log.info("Ending maintenance mode for Netty transport " + id + " running on port " + nettyConfig.getPort());
         bossGroup = new NioEventLoopGroup(nettyConfig.getBossThreads());
         workerGroup = new NioEventLoopGroup(nettyConfig.getWorkerThreads());
@@ -114,7 +108,7 @@ public class NettyListener extends CarbonTransport {
     }
 
     public String getState() {
-        return SERVER_STATE;
+        return serverState;
     }
 
     private void shutdownEventLoops() {
@@ -126,14 +120,18 @@ public class NettyListener extends CarbonTransport {
                 f.addListener(new GenericFutureListener<Future<Object>>() {
                     @Override
                     public void operationComplete(Future<Object> future) throws Exception {
-                        log.info("Netty transport " + id + " on port " + nettyConfig.getPort() + " stopped successfully");
-                        SERVER_STATE = Constants.STATE_STOPPED;
+                        log.info("Netty transport " + id + " on port " + nettyConfig.getPort() +
+                                " stopped successfully");
+                        serverState = Constants.STATE_STOPPED;
                     }
                 });
             }
         });
     }
 
+    /**
+     * Configurations for the Netty transport
+     */
     public static class Config {
 
         private String id;

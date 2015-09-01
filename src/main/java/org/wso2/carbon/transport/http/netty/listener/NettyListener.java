@@ -44,10 +44,8 @@ public class NettyListener extends CarbonTransport {
 
     private static EventLoopGroup bossGroup;
     private static EventLoopGroup workerGroup;
-    private static ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     private String SERVER_STATE = Constants.STATE_STOPPED;
     private ServerBootstrap bootstrap;
-    private ChannelInitializer defaultInitializer;
     private Config nettyConfig;
 
 
@@ -56,14 +54,6 @@ public class NettyListener extends CarbonTransport {
         this.nettyConfig = nettyConfig;
         bossGroup = new NioEventLoopGroup(nettyConfig.getBossThreads());
         workerGroup = new NioEventLoopGroup(nettyConfig.getWorkerThreads());
-    }
-
-    public static ChannelGroup getListenerChannelGroup() {
-        return allChannels;
-    }
-
-    public void setDefaultInitializer(ChannelInitializer defaultInitializer) {
-        this.defaultInitializer = defaultInitializer;
     }
 
     public void start() {
@@ -95,13 +85,9 @@ public class NettyListener extends CarbonTransport {
     }
 
     private void addChannelInitializer() {
-        if (defaultInitializer != null) {
-            bootstrap.childHandler(defaultInitializer);
-        } else {
             NettyServerInitializer handler = new NettyServerInitializer(id);
             handler.setSslConfig(nettyConfig.getSslConfig());
             bootstrap.childHandler(handler);
-        }
     }
 
     @Override
@@ -153,7 +139,6 @@ public class NettyListener extends CarbonTransport {
         private String id;
         private String host = "0.0.0.0";
         private int port = 8080;
-        private int queueSize;
         private int bossThreads = Runtime.getRuntime().availableProcessors();
         private int workerThreads = Runtime.getRuntime().availableProcessors() * 2;
         private int execThreads = 50;
@@ -180,17 +165,6 @@ public class NettyListener extends CarbonTransport {
             return this;
         }
 
-        public EventLoopGroup getBossGroup() {
-            return bossGroup;
-        }
-
-        public EventLoopGroup getWorkerGroup() {
-            return workerGroup;
-        }
-
-        public int getExecThreads() {
-            return execThreads;
-        }
 
         public Config setExecThreads(int execThreads) {
             this.execThreads = execThreads;
@@ -233,14 +207,6 @@ public class NettyListener extends CarbonTransport {
             return sslConfig;
         }
 
-        public Config setQueuSize(int queueSize) {
-            this.queueSize = queueSize;
-            return this;
-        }
-
-        public int getQueueSize() {
-            return queueSize;
-        }
     }
 
 }

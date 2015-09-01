@@ -28,13 +28,9 @@ import org.wso2.carbon.transport.http.netty.listener.CarbonNettyServerInitialize
 
 import java.util.Map;
 
-/**
- * Declarative service component for the Netty transport. This handles registration & unregistration of relevant
- * OSGi services.
- */
 @Component(
-        name = "org.wso2.carbon.transport.http.netty.internal.NettyTransportServiceComponent",
-        immediate = true
+           name = "org.wso2.carbon.transport.http.netty.internal.NettyTransportServiceComponent",
+           immediate = true
 )
 @SuppressWarnings("unused")
 public class NettyTransportServiceComponent {
@@ -46,11 +42,11 @@ public class NettyTransportServiceComponent {
     private NettyTransportDataHolder dataHolder = NettyTransportDataHolder.getInstance();
 
     @Reference(
-            name = "netty-channel.initializer",
-            service = CarbonNettyServerInitializer.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "removeNettyChannelInitializer"
+               name = "netty-channel.initializer",
+               service = CarbonNettyServerInitializer.class,
+               cardinality = ReferenceCardinality.MULTIPLE,
+               policy = ReferencePolicy.DYNAMIC,
+               unbind = "removeNettyChannelInitializer"
     )
     protected void addNettyChannelInitializer(CarbonNettyServerInitializer initializer, Map<String, ?> properties) {
         try {
@@ -58,8 +54,7 @@ public class NettyTransportServiceComponent {
             if (channelId != null) {
                 dataHolder.addNettyChannelInitializer(channelId, initializer);
             } else {
-                throw new IllegalArgumentException(CHANNEL_ID_KEY + " not specified for ChannelInitializer " +
-                        initializer);
+                throw new IllegalArgumentException(CHANNEL_ID_KEY + " not specified for ChannelInitializer " + initializer);
             }
         } catch (Throwable e) {
             log.error("Cannot add CarbonNettyServerInitializer", e);
@@ -72,23 +67,5 @@ public class NettyTransportServiceComponent {
         dataHolder.removeNettyChannelInitializer(channelId);
     }
 
-//    @Reference(
-//               name = "engine.service",
-//               service = Engine.class,
-//               cardinality = ReferenceCardinality.OPTIONAL,
-//               policy = ReferencePolicy.DYNAMIC,
-//               unbind = "removeEngine"
-//    )
-//    protected void setEngine(Engine engine) {
-//        try {
-//            dataHolder.setEngine(engine);
-//        } catch (Throwable e) {
-//            log.error("Cannot add Engine Implementation", e);
-//        }
-//    }
-//
-//    @SuppressWarnings("unused")
-//    protected void removeEngine() {
-//        dataHolder.unsetEngine();
-//    }
+
 }

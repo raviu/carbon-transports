@@ -101,7 +101,8 @@ public class NettyTransportActivator implements BundleActivator {
                             certPass = keystorePass;
                         }
                         if (keystoreFile == null || keystorePass == null) {
-                            throw new IllegalArgumentException("keyStoreFile or keyStorePass not defined for HTTPS scheme");
+                            throw new IllegalArgumentException("keyStoreFile or keyStorePass not defined for " +
+                                    "HTTPS scheme");
                         }
                         File keyStore = new File(keystoreFile);
                         if (!keyStore.exists()) {

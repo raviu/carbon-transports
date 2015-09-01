@@ -24,8 +24,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Security;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -52,7 +57,7 @@ public class SSLHandlerFactory {
             // Set up key manager factory to use our key store
             KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
             kmf.init(ks, sslConfig.getCertPass() != null ? sslConfig.getCertPass().toCharArray()
-                                                         : sslConfig.getKeyStorePass().toCharArray());
+                    : sslConfig.getKeyStorePass().toCharArray());
             KeyManager[] keyManagers = kmf.getKeyManagers();
             TrustManager[] trustManagers = null;
             if (sslConfig.getTrustStore() != null) {
@@ -64,7 +69,8 @@ public class SSLHandlerFactory {
             }
             serverContext = SSLContext.getInstance(protocol);
             serverContext.init(keyManagers, trustManagers, null);
-        } catch (Exception e) {
+        } catch (UnrecoverableKeyException | KeyManagementException |
+                NoSuchAlgorithmException | KeyStoreException | IOException e) {
             throw new IllegalArgumentException("Failed to initialize the server-side SSLContext", e);
         }
     }
@@ -74,11 +80,8 @@ public class SSLHandlerFactory {
         try (InputStream is = new FileInputStream(keyStore)) {
             ks = KeyStore.getInstance("JKS");
             ks.load(is, keyStorePassword.toCharArray());
-        } catch (Exception ex) {
-            if (ex instanceof RuntimeException) {
-                throw ((RuntimeException) ex);
-            }
-            throw new IOException(ex);
+        } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
+            throw new IOException(e);
         }
         return ks;
     }

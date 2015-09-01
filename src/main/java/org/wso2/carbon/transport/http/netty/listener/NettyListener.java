@@ -38,8 +38,8 @@ import java.net.InetSocketAddress;
 public class NettyListener extends CarbonTransport {
     private static final Logger log = LoggerFactory.getLogger(NettyListener.class);
 
-    private static EventLoopGroup bossGroup;
-    private static EventLoopGroup workerGroup;
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
     private String serverState = Constants.STATE_STOPPED;
     private ServerBootstrap bootstrap;
     private Config nettyConfig;
@@ -169,6 +169,10 @@ public class NettyListener extends CarbonTransport {
             return this;
         }
 
+        public int getExecThreads() {
+            return execThreads;
+        }
+
         public String getHost() {
             return host;
         }
@@ -204,7 +208,5 @@ public class NettyListener extends CarbonTransport {
         public SSLConfig getSslConfig() {
             return sslConfig;
         }
-
     }
-
 }

@@ -27,6 +27,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.http.netty.Constants;
+import org.wso2.carbon.transport.http.netty.internal.NettyTransportDataHolder;
 import org.wso2.carbon.transport.http.netty.internal.config.ListenerConfiguration;
 import org.wso2.carbon.transport.http.netty.internal.config.Parameter;
 import org.wso2.carbon.transports.CarbonTransport;
@@ -73,6 +74,8 @@ public class NettyListener extends CarbonTransport {
         bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
         bootstrap.childOption(ChannelOption.SO_RCVBUF, 1048576);
         bootstrap.childOption(ChannelOption.SO_SNDBUF, 1048576);
+
+        setupChannelInitializer();
         try {
             bootstrap.bind(new InetSocketAddress(nettyConfig.getHost(), nettyConfig.getPort())).sync();
             serverState = Constants.STATE_STARTED;
@@ -82,18 +85,24 @@ public class NettyListener extends CarbonTransport {
         }
     }
 
+    private void setupChannelInitializer() {
+        CarbonNettyServerInitializer channelInitializer =
+                NettyTransportDataHolder.getInstance().getChannelInitializer(nettyConfig.getId());
+        if (channelInitializer != null) {
+            List<Parameter> parameters = nettyConfig.getParameters();
+            if (parameters != null && !parameters.isEmpty()) {
+                Map<String, String> paramMap = new HashMap<>(parameters.size());
+                for (Parameter parameter : parameters) {
+                    paramMap.put(parameter.getName(), parameter.getValue());
+                }
+                channelInitializer.setup(paramMap);
+            }
+        }
+    }
+
     private void addChannelInitializer() {
         NettyServerInitializer handler = new NettyServerInitializer(id);
         handler.setSslConfig(nettyConfig.getSslConfig());
-
-        List<Parameter> parameters = nettyConfig.getParameters();
-        if (parameters != null && !parameters.isEmpty()) {
-            Map<String, String> paramMap = new HashMap<>(parameters.size());
-            for (Parameter parameter : parameters) {
-                paramMap.put(parameter.getName(), parameter.getValue());
-            }
-            handler.setParameters(paramMap);
-        }
         bootstrap.childHandler(handler);
     }
 
@@ -140,85 +149,5 @@ public class NettyListener extends CarbonTransport {
                 });
             }
         });
-    }/*
-
-    *//**
-     * Configurations for the Netty transport
-     *//*
-    public static class Config {
-
-        private String id;
-        private String host = "0.0.0.0";
-        private int port = 8080;
-        private int bossThreads = Runtime.getRuntime().availableProcessors();
-        private int workerThreads = Runtime.getRuntime().availableProcessors() * 2;
-        private int execThreads = 50;
-        private SSLConfig sslConfig;
-
-        public Config(String id) {
-            if (id == null) {
-                throw new IllegalArgumentException("Netty transport ID is null");
-            }
-            this.id = id;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public int getBossThreads() {
-            return bossThreads;
-        }
-
-        public Config setBossThreads(int bossThreads) {
-            this.bossThreads = bossThreads;
-            return this;
-        }
-
-
-        public Config setExecThreads(int execThreads) {
-            this.execThreads = execThreads;
-            return this;
-        }
-
-        public int getExecThreads() {
-            return execThreads;
-        }
-
-        public String getHost() {
-            return host;
-        }
-
-        public Config setHost(String host) {
-            this.host = host;
-            return this;
-        }
-
-        public int getPort() {
-            return port;
-        }
-
-        public Config setPort(int port) {
-            this.port = port;
-            return this;
-        }
-
-        public int getWorkerThreads() {
-            return workerThreads;
-        }
-
-        public Config setWorkerThreads(int workerThreads) {
-            this.workerThreads = workerThreads;
-            return this;
-        }
-
-        public Config enableSsl(SSLConfig sslConfig) {
-            this.sslConfig = sslConfig;
-            return this;
-        }
-
-        public SSLConfig getSslConfig() {
-            return sslConfig;
-        }
-    }*/
+    }
 }

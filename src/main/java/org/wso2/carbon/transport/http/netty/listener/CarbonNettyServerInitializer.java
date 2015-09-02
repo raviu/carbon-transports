@@ -28,10 +28,16 @@ import java.util.Map;
 public interface CarbonNettyServerInitializer {
 
     /**
-     * Initialize the Netty SocketChannel
+     * The setup method is called once to setup the  CarbonNettyServerInitializer.
      *
-     * @param socketChannel Netty SocketChannel
      * @param parameters Optional transport parameters. Key - parameter name, Value - parameter value
      */
-    void initChannel(SocketChannel socketChannel, Map<String, String> parameters);
+    void setup(Map<String, String> parameters);
+
+    /**
+     * Initialize the Netty SocketChannel. This is called per connection.
+     *
+     * @param socketChannel Netty SocketChannel
+     */
+    void initChannel(SocketChannel socketChannel);
 }

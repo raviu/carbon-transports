@@ -20,9 +20,18 @@ package org.wso2.carbon.transport.http.netty.listener;
 
 import io.netty.channel.socket.SocketChannel;
 
+import java.util.Map;
+
 /**
  * An implementation of this class is used for registering additional handlers to the channel pipeline
  */
 public interface CarbonNettyServerInitializer {
-    void initChannel(SocketChannel socketChannel);
+
+    /**
+     * Initialize the Netty SocketChannel
+     *
+     * @param socketChannel Netty SocketChannel
+     * @param parameters Optional transport parameters. Key - parameter name, Value - parameter value
+     */
+    void initChannel(SocketChannel socketChannel, Map<String, String> parameters);
 }

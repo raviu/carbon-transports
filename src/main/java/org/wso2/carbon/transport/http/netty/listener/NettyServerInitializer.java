@@ -26,6 +26,8 @@ import org.wso2.carbon.transport.http.netty.internal.NettyTransportDataHolder;
 import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
 import org.wso2.carbon.transport.http.netty.listener.ssl.SSLHandlerFactory;
 
+import java.util.Map;
+
 /**
  * Handles initialization of the Netty Channel pipeline
  */
@@ -34,6 +36,7 @@ public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
 
     private String transportID;
     private SSLConfig sslConfig;
+    private Map<String, String> parameters;
 
     public NettyServerInitializer(String transportID) {
         this.transportID = transportID;
@@ -60,7 +63,11 @@ public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
             if (log.isDebugEnabled()) {
                 log.debug("Calling CarbonNettyServerInitializer OSGi service " + initializer);
             }
-            initializer.initChannel(socketChannel);
+            initializer.initChannel(socketChannel, parameters);
         }
+    }
+
+    public void setParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
     }
 }

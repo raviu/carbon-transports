@@ -28,9 +28,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.http.netty.Constants;
 import org.wso2.carbon.transport.http.netty.internal.config.ListenerConfiguration;
+import org.wso2.carbon.transport.http.netty.internal.config.Parameter;
 import org.wso2.carbon.transports.CarbonTransport;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A class that starts the netty server bootstrap in given port
@@ -81,6 +85,15 @@ public class NettyListener extends CarbonTransport {
     private void addChannelInitializer() {
         NettyServerInitializer handler = new NettyServerInitializer(id);
         handler.setSslConfig(nettyConfig.getSslConfig());
+
+        List<Parameter> parameters = nettyConfig.getParameters();
+        if (parameters != null && !parameters.isEmpty()) {
+            Map<String, String> paramMap = new HashMap<>(parameters.size());
+            for (Parameter parameter : parameters) {
+                paramMap.put(parameter.getName(), parameter.getValue());
+            }
+            handler.setParameters(paramMap);
+        }
         bootstrap.childHandler(handler);
     }
 

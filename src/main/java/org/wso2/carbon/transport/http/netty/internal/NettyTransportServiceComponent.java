@@ -33,8 +33,8 @@ import java.util.Map;
  * OSGi services.
  */
 @Component(
-           name = "org.wso2.carbon.transport.http.netty.internal.NettyTransportServiceComponent",
-           immediate = true
+        name = "org.wso2.carbon.transport.http.netty.internal.NettyTransportServiceComponent",
+        immediate = true
 )
 @SuppressWarnings("unused")
 public class NettyTransportServiceComponent {
@@ -46,11 +46,11 @@ public class NettyTransportServiceComponent {
     private NettyTransportDataHolder dataHolder = NettyTransportDataHolder.getInstance();
 
     @Reference(
-               name = "netty-channel.initializer",
-               service = CarbonNettyServerInitializer.class,
-               cardinality = ReferenceCardinality.MULTIPLE,
-               policy = ReferencePolicy.DYNAMIC,
-               unbind = "removeNettyChannelInitializer"
+            name = "netty-channel.initializer",
+            service = CarbonNettyServerInitializer.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "removeNettyChannelInitializer"
     )
     protected void addNettyChannelInitializer(CarbonNettyServerInitializer initializer, Map<String, ?> properties) {
         try {

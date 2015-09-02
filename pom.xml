@@ -161,7 +161,9 @@
                             org.wso2.carbon.transports.*,
                             org.slf4j.*,
                             org.xml.sax.*,
-                            javax.xml.parsers.*,
+                            javax.xml.bind.*,
+                            javax.xml.transform.*,
+                            javax.xml.validation.*,
                             javax.net.ssl.*
                         </Import-Package>
                         <_dsannotations>*</_dsannotations>

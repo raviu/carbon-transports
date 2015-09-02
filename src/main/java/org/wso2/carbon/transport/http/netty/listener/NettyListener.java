@@ -27,7 +27,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.http.netty.Constants;
-import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
+import org.wso2.carbon.transport.http.netty.internal.config.ListenerConfiguration;
 import org.wso2.carbon.transports.CarbonTransport;
 
 import java.net.InetSocketAddress;
@@ -42,13 +42,13 @@ public class NettyListener extends CarbonTransport {
     private EventLoopGroup workerGroup;
     private String serverState = Constants.STATE_STOPPED;
     private ServerBootstrap bootstrap;
-    private Config nettyConfig;
+    private ListenerConfiguration nettyConfig;
 
-    public NettyListener(Config nettyConfig) {
+    public NettyListener(ListenerConfiguration nettyConfig) {
         super(nettyConfig.getId());
         this.nettyConfig = nettyConfig;
-        bossGroup = new NioEventLoopGroup(nettyConfig.getBossThreads());
-        workerGroup = new NioEventLoopGroup(nettyConfig.getWorkerThreads());
+        bossGroup = new NioEventLoopGroup(nettyConfig.getBossThreadPoolSize());
+        workerGroup = new NioEventLoopGroup(nettyConfig.getWorkerThreadPoolSize());
     }
 
     public void start() {
@@ -102,8 +102,8 @@ public class NettyListener extends CarbonTransport {
     public void endMaintenance() {
         serverState = Constants.STATE_TRANSITION;
         log.info("Ending maintenance mode for Netty transport " + id + " running on port " + nettyConfig.getPort());
-        bossGroup = new NioEventLoopGroup(nettyConfig.getBossThreads());
-        workerGroup = new NioEventLoopGroup(nettyConfig.getWorkerThreads());
+        bossGroup = new NioEventLoopGroup(nettyConfig.getBossThreadPoolSize());
+        workerGroup = new NioEventLoopGroup(nettyConfig.getWorkerThreadPoolSize());
         startTransport();
     }
 
@@ -127,11 +127,11 @@ public class NettyListener extends CarbonTransport {
                 });
             }
         });
-    }
+    }/*
 
-    /**
+    *//**
      * Configurations for the Netty transport
-     */
+     *//*
     public static class Config {
 
         private String id;
@@ -141,7 +141,6 @@ public class NettyListener extends CarbonTransport {
         private int workerThreads = Runtime.getRuntime().availableProcessors() * 2;
         private int execThreads = 50;
         private SSLConfig sslConfig;
-
 
         public Config(String id) {
             if (id == null) {
@@ -208,5 +207,5 @@ public class NettyListener extends CarbonTransport {
         public SSLConfig getSslConfig() {
             return sslConfig;
         }
-    }
+    }*/
 }

@@ -20,30 +20,18 @@ package org.wso2.carbon.transport.http.netty.internal;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wso2.carbon.transport.http.netty.internal.config.ListenerConfiguration;
+import org.wso2.carbon.transport.http.netty.internal.config.TransportConfigurationBuilder;
 import org.wso2.carbon.transport.http.netty.listener.NettyListener;
-import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
 import org.wso2.carbon.transports.CarbonTransport;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
 /**
  * OSGi BundleActivator of the Netty transport component
  */
 public class NettyTransportActivator implements BundleActivator {
-    public static final String NETTY_TRANSPORTS_CONFIG_FILE = "repository" + File.separator + "conf" + File.separator +
-            "transports" + File.separator + "netty-transports.xml";
-    private static final Logger log = LoggerFactory.getLogger(NettyTransportActivator.class);
 
     @Override
     public void start(BundleContext bundleContext) throws Exception {
@@ -58,14 +46,11 @@ public class NettyTransportActivator implements BundleActivator {
      * @return Netty transport instances
      */
     private Set<NettyListener> createNettyListeners() {
-        final Set<NettyListener> listeners = new HashSet<>();
-        DefaultHandler handler = new NettyTransportDataHandler(listeners);
-        try {
-            SAXParserFactory factory = SAXParserFactory.newInstance();
-            SAXParser saxParser = factory.newSAXParser();
-            saxParser.parse(NETTY_TRANSPORTS_CONFIG_FILE, handler);
-        } catch (ParserConfigurationException | SAXException | IOException e) {
-            log.error("Cannot parse " + NETTY_TRANSPORTS_CONFIG_FILE, e);
+        Set<NettyListener> listeners = new HashSet<>();
+        Set<ListenerConfiguration> listenerConfigurations =
+                TransportConfigurationBuilder.build().getListenerConfigurations();
+        for (ListenerConfiguration listenerConfiguration : listenerConfigurations) {
+            listeners.add(new NettyListener(listenerConfiguration));
         }
         return listeners;
     }
@@ -74,82 +59,5 @@ public class NettyTransportActivator implements BundleActivator {
     @Override
     public void stop(BundleContext bundleContext) throws Exception {
 
-    }
-
-    /**
-     * SAX DataHandler used for parsing the netty-transports.xml
-     */
-    private static class NettyTransportDataHandler extends DefaultHandler {
-        private Set<NettyListener> listeners;
-
-        public NettyTransportDataHandler(Set<NettyListener> listeners) {
-            this.listeners = listeners;
-        }
-
-        @Override
-        public void startElement(String uri, String localName, String qName, Attributes attributes)
-                throws SAXException {
-            super.startElement(uri, localName, qName, attributes);
-            if (qName.equals("listener")) {
-                String id = attributes.getValue("id");
-                String host = attributes.getValue("host");
-                String port = attributes.getValue("port");
-                String bossThreadPoolSize = attributes.getValue("bossThreadPoolSize");
-                String workerThreadPoolSize = attributes.getValue("workerThreadPoolSize");
-                String execHandlerThreadPoolSize = attributes.getValue("execHandlerThreadPoolSize");
-
-                String scheme = attributes.getValue("scheme");
-                String keystoreFile = attributes.getValue("keystoreFile");
-                String keystorePass = attributes.getValue("keystorePass");
-                String certPass = attributes.getValue("certPass");
-                String trustStoreFile = attributes.getValue("trustStoreFile");
-                String trustStorePass = attributes.getValue("trustStorePass");
-
-                NettyListener.Config nettyConfig = new NettyListener.Config(id);
-                if (host != null) {
-                    nettyConfig.setHost(host);
-                }
-                if (port != null) {
-                    nettyConfig.setPort(Integer.parseInt(port));
-                }
-                if (bossThreadPoolSize != null) {
-                    nettyConfig.setBossThreads(Integer.parseInt(bossThreadPoolSize));
-                }
-                if (workerThreadPoolSize != null) {
-                    nettyConfig.setWorkerThreads(Integer.parseInt(workerThreadPoolSize));
-                }
-                if (execHandlerThreadPoolSize != null) {
-                    nettyConfig.setExecThreads(Integer.parseInt(execHandlerThreadPoolSize));
-                }
-
-                if (scheme != null && scheme.equalsIgnoreCase("https")) {
-                    if (certPass == null) {
-                        certPass = keystorePass;
-                    }
-                    if (keystoreFile == null || keystorePass == null) {
-                        throw new IllegalArgumentException("keyStoreFile or keyStorePass not defined for " +
-                                "HTTPS scheme");
-                    }
-                    File keyStore = new File(keystoreFile);
-                    if (!keyStore.exists()) {
-                        throw new IllegalArgumentException("KeyStore File " + keystoreFile + " not found");
-                    }
-                    SSLConfig sslConfig =
-                            new SSLConfig(keyStore, keystorePass).setCertPass(certPass);
-                    if (trustStoreFile != null) {
-                        File trustStore = new File(trustStoreFile);
-                        if (!trustStore.exists()) {
-                            throw new IllegalArgumentException("trustStore File " + trustStoreFile + " not found");
-                        }
-                        if (trustStorePass == null) {
-                            throw new IllegalArgumentException("trustStorePass is not defined for HTTPS scheme");
-                        }
-                        sslConfig.setTrustStore(trustStore).setTrustStorePass(trustStorePass);
-                    }
-                    nettyConfig.enableSsl(sslConfig);
-                }
-                listeners.add(new NettyListener(nettyConfig));
-            }
-        }
     }
 }
